@@ -1,0 +1,37 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id       String @id @default(cuid())
+  username String @unique
+  password String
+  name     String
+  role     String @default("MANAGER")
+}
+
+model Member {
+  id        String   @id @default(cuid())
+  name      String
+  courtFee  Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  date         DateTime @default(now())
+  courtName    String
+  shuttlePrice Int
+  status       String   @default("OPEN")
+}
+
+model Game {
+  id           String @id @default(cuid())
+  sessionId    String
+  courtName    String
+  shuttleCount Int    @default(1)
+}
