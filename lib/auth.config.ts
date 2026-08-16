@@ -20,6 +20,18 @@ export const authConfig = {
       }
       return true;
     },
+    jwt({ token, user }) {
+      if (user) {
+        token.role = (user as { role?: string }).role;
+      }
+      return token;
+    },
+    session({ session, token }) {
+      if (session.user) {
+        (session.user as { role?: string }).role = token.role as string;
+      }
+      return session;
+    },
   },
   providers: [],
 } satisfies NextAuthConfig;
