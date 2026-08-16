@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useActionState } from "react";
 import { authenticate } from "./actions";
@@ -10,24 +10,42 @@ export default function LoginPage() {
   );
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#FBF8FF] to-[#F3EAFF] p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-[#FBF8FF] to-[#F3EAFF] p-4">
       <div className="grid grid-cols-1 md:grid-cols-2 max-w-4xl w-full bg-white rounded-[28px] overflow-hidden shadow-2xl">
         {/* Hero */}
-        <div className="relative bg-gradient-to-br from-[#2A0A4A] via-[#6D28D9] to-[#9333EA] p-10 md:p-12 flex flex-col justify-center text-white overflow-hidden">
-          <img
-            src="/logo-white.png"
-            alt="SierraBad"
-            className="h-14 mb-9 drop-shadow-lg w-auto"
+        <div className="relative bg-gradient-to-br from-[#2A0A4A] via-[#6D28D9] to-[#9333EA] p-10 md:p-12 flex flex-col items-center justify-center text-white text-center overflow-hidden">
+          {/* decorative dot-grid pattern */}
+          <div
+            className="absolute inset-0 opacity-[0.08] pointer-events-none"
+            style={{
+              backgroundImage:
+                "radial-gradient(circle, #fff 1px, transparent 1px)",
+              backgroundSize: "22px 22px",
+            }}
           />
-          <h1 className="text-2xl font-bold leading-snug mb-3">
-            แพลตฟอร์มบริหารจัดการ
-            <br />
-            ก๊วนแบดมินตันมืออาชีพ
-          </h1>
-          <p className="text-sm leading-relaxed opacity-90 max-w-xs">
-            จัดก๊วน เช็คอิน จับคู่เกมส์ คิดค่าลูก-ค่าสนาม
-            และแจ้งเตือนสรุปผลอัตโนมัติเข้า LINE OA — ครบในที่เดียว
-          </p>
+          {/* decorative glow blobs */}
+          <div className="absolute -top-20 -right-16 w-64 h-64 rounded-full bg-white/10 blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-24 -left-14 w-72 h-72 rounded-full bg-fuchsia-300/20 blur-3xl pointer-events-none" />
+          <div className="absolute top-1/3 left-1/4 w-28 h-28 rounded-full bg-purple-200/10 blur-2xl pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col items-center">
+            <div className="h-24 mb-10 flex items-center justify-center">
+              <img
+                src="/logo-white.png"
+                alt="SierraBad"
+                className="h-full w-auto object-contain drop-shadow-[0_8px_24px_rgba(0,0,0,0.35)]"
+              />
+            </div>
+            <h1 className="text-2xl font-bold leading-snug mb-3">
+              แพลตฟอร์มบริหารจัดการ
+              <br />
+              ก๊วนแบดมินตันมืออาชีพ
+            </h1>
+            <p className="text-sm leading-relaxed opacity-90 max-w-xs">
+              จัดก๊วน เช็คอิน จับคู่เกมส์ คิดค่าลูก-ค่าสนาม
+              และแจ้งเตือนสรุปผลอัตโนมัติเข้า LINE OA — ครบในที่เดียว
+            </p>
+          </div>
         </div>
 
         {/* Form */}
@@ -74,7 +92,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isPending}
-              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 to-purple-500 text-white font-bold text-sm shadow-lg shadow-purple-300 disabled:opacity-60"
+              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 to-purple-500 text-white font-bold text-sm shadow-lg shadow-purple-300 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-60"
             >
               {isPending ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
             </button>
@@ -86,7 +104,14 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+
+      <p className="mt-6 flex items-center justify-center gap-2 text-xs text-purple-400/70 tracking-wide">
+        <span className="font-semibold text-purple-500/80">SierraBad</span>
+        <span className="opacity-50">·</span>
+        <span>© 2569 บริษัท เซียร่า จำกัด</span>
+        <span className="opacity-50">·</span>
+        <span>สงวนลิขสิทธิ์ทุกประการ</span>
+      </p>
     </div>
   );
 }
-
