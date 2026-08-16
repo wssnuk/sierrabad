@@ -18,7 +18,10 @@ export async function getTodaySession() {
     where: { date: { gte: start, lte: end }, status: "OPEN" },
     include: {
       checkIns: { include: { member: true } },
-      games: { include: { players: { include: { member: true } } } },
+      games: {
+        include: { players: { include: { member: true } } },
+        orderBy: { createdAt: "asc" },
+      },
     },
     orderBy: { date: "desc" },
   });
@@ -35,6 +38,16 @@ export async function createSession(formData: FormData) {
   revalidatePath("/manager/session");
 }
 
+export async function updateSessionName(sessionId: string, formData: FormData) {
+  const courtName = formData.get("courtName") as string;
+  if (!courtName) return;
+  await prisma.session.update({
+    where: { id: sessionId },
+    data: { courtName },
+  });
+  revalidatePath("/manager/session");
+}
+
 export async function checkInMember(sessionId: string, memberId: string) {
   const existing = await prisma.checkIn.findFirst({
     where: { sessionId, memberId },
@@ -47,23 +60,88 @@ export async function checkInMember(sessionId: string, memberId: string) {
 
 export async function createGame(formData: FormData) {
   const sessionId = formData.get("sessionId") as string;
-  const courtName = formData.get("courtName") as string;
+  let courtName = (formData.get("courtName") as string)?.trim();
   const shuttleCount = Number(formData.get("shuttleCount")) || 1;
-  const team1 = formData.getAll("team1") as string[];
-  const team2 = formData.getAll("team2") as string[];
+  const shuttleNumber =
+    (formData.get("shuttleNumber") as string)?.trim() || null;
+  const players = Array.from(
+    new Set(formData.getAll("players") as string[])
+  );
+
+  if (!courtName) {
+    const count = await prisma.game.count({ where: { sessionId } });
+    courtName = `แมทช์ ${count + 1}`;
+  }
 
   const game = await prisma.game.create({
-    data: { sessionId, courtName, shuttleCount },
+    data: { sessionId, courtName, shuttleCount, shuttleNumber },
   });
 
-  const players = [
-    ...team1.map((memberId) => ({ gameId: game.id, memberId, team: 1 })),
-    ...team2.map((memberId) => ({ gameId: game.id, memberId, team: 2 })),
-  ];
-
   if (players.length > 0) {
-    await prisma.gamePlayer.createMany({ data: players });
+    await prisma.gamePlayer.createMany({
+      data: players.map((memberId) => ({ gameId: game.id, memberId, team: 0 })),
+    });
   }
+
+  revalidatePath("/manager/session");
+}
+
+export async function updateGame(
+  gameId: string,
+  playerIds: string[],
+  formData: FormData
+) {
+  const courtName = (formData.get("courtName") as string)?.trim() || "แมทช์";
+  const shuttleCount = Number(formData.get("shuttleCount")) || 1;
+  const shuttleNumber =
+    (formData.get("shuttleNumber") as string)?.trim() || null;
+  const uniquePlayers = Array.from(new Set(playerIds));
+
+  await prisma.game.update({
+    where: { id: gameId },
+    data: { courtName, shuttleCount, shuttleNumber },
+  });
+
+  await prisma.gamePlayer.deleteMany({ where: { gameId } });
+  if (uniquePlayers.length > 0) {
+    await prisma.gamePlayer.createMany({
+      data: uniquePlayers.map((memberId) => ({ gameId, memberId, team: 0 })),
+    });
+  }
+
+  revalidatePath("/manager/session");
+}
+
+export async function updateCheckInFee(checkInId: string, formData: FormData) {
+  const value = formData.get("courtFeeOverride");
+  const courtFeeOverride =
+    value === null || value === "" ? null : Number(value);
+
+  await prisma.checkIn.update({
+    where: { id: checkInId },
+    data: { courtFeeOverride },
+  });
+
+  revalidatePath("/manager/session");
+}
+
+export async function updateActuals(sessionId: string, formData: FormData) {
+  const actualCourtFeePaidRaw = formData.get("actualCourtFeePaid");
+  const actualShuttleCountRaw = formData.get("actualShuttleCount");
+
+  await prisma.session.update({
+    where: { id: sessionId },
+    data: {
+      actualCourtFeePaid:
+        actualCourtFeePaidRaw === null || actualCourtFeePaidRaw === ""
+          ? null
+          : Number(actualCourtFeePaidRaw),
+      actualShuttleCount:
+        actualShuttleCountRaw === null || actualShuttleCountRaw === ""
+          ? null
+          : Number(actualShuttleCountRaw),
+    },
+  });
 
   revalidatePath("/manager/session");
 }

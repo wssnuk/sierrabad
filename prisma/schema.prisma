@@ -15,48 +15,52 @@ model User {
 }
 
 model Member {
-  id         String       @id @default(cuid())
-  name       String
-  courtFee   Int          @default(0)
-  createdAt  DateTime     @default(now())
-  checkIns   CheckIn[]
+  id          String       @id @default(cuid())
+  name        String
+  courtFee    Int          @default(0)
+  createdAt   DateTime     @default(now())
+  checkIns    CheckIn[]
   gamePlayers GamePlayer[]
 }
 
 model Session {
-  id           String    @id @default(cuid())
-  date         DateTime  @default(now())
-  courtName    String
-  shuttlePrice Int
-  status       String    @default("OPEN")
-  checkIns     CheckIn[]
-  games        Game[]
+  id                 String    @id @default(cuid())
+  date               DateTime  @default(now())
+  courtName          String
+  shuttlePrice       Int
+  status             String    @default("OPEN")
+  actualCourtFeePaid Int?
+  actualShuttleCount Int?
+  checkIns           CheckIn[]
+  games              Game[]
 }
 
 model CheckIn {
-  id          String   @id @default(cuid())
-  sessionId   String
-  memberId    String
-  checkedInAt DateTime @default(now())
-  session     Session  @relation(fields: [sessionId], references: [id])
-  member      Member   @relation(fields: [memberId], references: [id])
+  id               String   @id @default(cuid())
+  sessionId        String
+  memberId         String
+  checkedInAt      DateTime @default(now())
+  courtFeeOverride Int?
+  session          Session  @relation(fields: [sessionId], references: [id])
+  member           Member   @relation(fields: [memberId], references: [id])
 }
 
 model Game {
-  id           String       @id @default(cuid())
-  sessionId    String
-  courtName    String
-  shuttleCount Int          @default(1)
-  createdAt    DateTime     @default(now())
-  session      Session      @relation(fields: [sessionId], references: [id])
-  players      GamePlayer[]
+  id            String       @id @default(cuid())
+  sessionId     String
+  courtName     String
+  shuttleCount  Int          @default(1)
+  shuttleNumber String?
+  createdAt     DateTime     @default(now())
+  session       Session      @relation(fields: [sessionId], references: [id])
+  players       GamePlayer[]
 }
 
 model GamePlayer {
   id       String @id @default(cuid())
   gameId   String
   memberId String
-  team     Int
+  team     Int    @default(0)
   game     Game   @relation(fields: [gameId], references: [id])
   member   Member @relation(fields: [memberId], references: [id])
 }

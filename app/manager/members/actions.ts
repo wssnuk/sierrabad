@@ -14,3 +14,16 @@ export async function addMember(formData: FormData) {
 
   revalidatePath("/manager/members");
 }
+
+export async function updateMember(memberId: string, formData: FormData) {
+  const name = formData.get("name") as string;
+  const courtFee = Number(formData.get("courtFee")) || 0;
+  if (!name) return;
+
+  await prisma.member.update({
+    where: { id: memberId },
+    data: { name, courtFee },
+  });
+
+  revalidatePath("/manager/members");
+}
