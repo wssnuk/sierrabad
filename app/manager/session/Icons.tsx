@@ -73,3 +73,33 @@ export function ScaleIcon({ className = "w-4 h-4" }: { className?: string }) {
     </svg>
   );
 }
+
+export function TrashIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.8">
+      <path d="M4 7h16" strokeLinecap="round" />
+      <path d="M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7" strokeLinejoin="round" />
+      <path d="M6 7l1 13a2 2 0 0 0 2 1.8h6a2 2 0 0 0 2-1.8l1-13" strokeLinejoin="round" />
+      <path d="M10 11v6M14 11v6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function HistoryIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.8">
+      <path d="M3 12a9 9 0 1 0 3-6.7" strokeLinecap="round" />
+      <path d="M3 4v5h5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M12 8v4.5l3 2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function ShieldIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.8">
+      <path d="M12 3 4 6.5v5c0 5 3.4 8.6 8 9.5 4.6-.9 8-4.5 8-9.5v-5L12 3Z" strokeLinejoin="round" />
+      <path d="m9 12 2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}

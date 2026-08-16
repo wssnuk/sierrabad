@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { updateGame } from "./actions";
-import { PencilIcon, ShuttleIcon, TagIcon } from "./Icons";
+import { updateGame, deleteGame } from "./actions";
+import { PencilIcon, ShuttleIcon, TagIcon, TrashIcon } from "./Icons";
 
 type Member = { id: string; name: string };
 type GamePlayerData = { memberId: string; member: Member };
@@ -36,6 +36,12 @@ export default function GameCard({
     if (selected.length < 4) setSelected([...selected, id]);
   }
 
+  function handleDelete() {
+    if (confirm(`ลบ "${game.courtName}" ใช่หรือไม่? การลบไม่สามารถย้อนกลับได้`)) {
+      deleteGame(game.id);
+    }
+  }
+
   if (!editing) {
     return (
       <div
@@ -59,6 +65,13 @@ export default function GameCard({
               aria-label="แก้ไขเกมส์"
             >
               <PencilIcon className="w-4 h-4" />
+            </button>
+            <button
+              onClick={handleDelete}
+              className="text-red-300 hover:text-red-500 transition-colors"
+              aria-label="ลบเกมส์"
+            >
+              <TrashIcon className="w-4 h-4" />
             </button>
           </div>
         </div>

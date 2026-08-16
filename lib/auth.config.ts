@@ -8,11 +8,14 @@ export const authConfig = {
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
-      const isProtected =
-        nextUrl.pathname.startsWith("/manager") ||
-        nextUrl.pathname.startsWith("/admin");
+      const role = (auth?.user as { role?: string } | undefined)?.role;
+      const isAdminPath = nextUrl.pathname.startsWith("/admin");
+      const isManagerPath = nextUrl.pathname.startsWith("/manager");
 
-      if (isProtected) {
+      if (isAdminPath) {
+        return isLoggedIn && role === "ADMIN";
+      }
+      if (isManagerPath) {
         return isLoggedIn;
       }
       return true;
