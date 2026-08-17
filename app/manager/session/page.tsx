@@ -17,6 +17,7 @@ import CloseSessionButton from "./CloseSessionButton";
 import { CourtIcon, PeopleIcon, ShuttleIcon } from "./Icons";
 import Footer from "@/components/Footer";
 import LastEditedBadge from "@/components/LastEditedBadge";
+import AutoRefresh from "./AutoRefresh";
 
 const fontStack =
   "var(--font-thai), var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
@@ -144,6 +145,7 @@ export default async function SessionPage({
       className="min-h-screen bg-gradient-to-b from-[#FBF8FF] to-[#F3EAFF] p-6"
       style={{ fontFamily: fontStack }}
     >
+      <AutoRefresh intervalMs={15000} />
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <EditableSessionName
@@ -260,15 +262,15 @@ export default async function SessionPage({
           <p className="text-xs text-gray-500 mb-4">
             ค่าลูกคิดตามจำนวนแมทช์ที่แต่ละคนลงเล่นจริง ไม่ได้หารเท่ากันทุกคน
           </p>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="overflow-x-auto -mx-2 px-2">
+            <table className="w-full text-sm min-w-[560px]">
               <thead>
-                <tr className="text-left text-xs text-gray-500 border-b">
-                  <th className="pb-2 pr-3">ชื่อ</th>
-                  <th className="pb-2 pr-3">เล่นไปแล้ว</th>
-                  <th className="pb-2 pr-3">ค่าสนาม (แก้ไขได้)</th>
-                  <th className="pb-2 pr-3">ลูกที่ใช้ (ค่าลูก)</th>
-                  <th className="pb-2">รวมที่ต้องจ่าย</th>
+                <tr className="text-left text-xs font-bold text-purple-700 bg-gradient-to-r from-purple-100 via-fuchsia-100 to-indigo-100">
+                  <th className="py-3 pr-3 pl-3 rounded-l-xl">ชื่อ</th>
+                  <th className="py-3 pr-3">เล่นไปแล้ว</th>
+                  <th className="py-3 pr-3">ค่าสนาม (แก้ไขได้)</th>
+                  <th className="py-3 pr-3">ลูกที่ใช้ (ค่าลูก)</th>
+                  <th className="py-3 pr-3 rounded-r-xl">รวมที่ต้องจ่าย</th>
                 </tr>
               </thead>
               <tbody>

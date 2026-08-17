@@ -19,6 +19,9 @@ export default function AddMemberForm({
           name="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") e.preventDefault();
+          }}
           placeholder="ชื่อ-นามสกุล / ชื่อเล่น"
           required
           className={
