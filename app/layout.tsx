@@ -3,16 +3,20 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://sierrabad.vercel.app"),
-  title: "ระบบบริหารจัดการก๊วนแบด | SierraBad",
+  title: "SierraBad | ระบบบริหารจัดการก๊วนแบดมืออาชีพ",
   description:
     "แพลตฟอร์มบริหารจัดการก๊วนแบดมินตันครบวงจร จัดก๊วน เช็คอิน จับคู่เกมส์ คิดค่าลูก-ค่าสนาม และแจ้งเตือนสรุปผลอัตโนมัติเข้า LINE OA โดย SierraBad",
-  icons: {
-    icon: "/icon.png",
-  },
   openGraph: {
-    title: "ระบบบริหารจัดการก๊วนแบด | SierraBad",
+    title: "SierraBad | ระบบบริหารจัดการก๊วนแบดมืออาชีพ",
     description: "แพลตฟอร์มบริหารจัดการก๊วนแบดมินตันครบวงจร โดย SierraBad",
-    images: ["/logo.png"],
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "SierraBad",
+      },
+    ],
     locale: "th_TH",
     type: "website",
   },
