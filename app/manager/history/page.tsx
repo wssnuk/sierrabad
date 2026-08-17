@@ -3,12 +3,18 @@ import { CourtIcon, PeopleIcon, ShuttleIcon, CoinIcon } from "../session/Icons";
 import DeleteHistoryButton from "./DeleteHistoryButton";
 import { cleanupOldHistory } from "./actions";
 import Footer from "@/components/Footer";
+import LastEditedBadge from "@/components/LastEditedBadge";
+import { auth } from "@/lib/auth";
 
 const fontStack =
   "var(--font-thai), var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
 
 export default async function HistoryPage() {
   await cleanupOldHistory();
+
+  const authSession = await auth();
+  const isAdmin =
+    (authSession?.user as { role?: string } | undefined)?.role === "ADMIN";
 
   const sessions = await prisma.session.findMany({
     where: { status: "CLOSED" },
@@ -71,8 +77,11 @@ export default async function HistoryPage() {
                     <CourtIcon className="w-4 h-4 text-purple-500" />
                     <h2 className="font-bold text-[#3B0764]">{s.courtName}</h2>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 flex-wrap justify-end">
                     <span className="text-xs text-gray-400">{dateLabel} · {timeLabel} น.</span>
+                    {isAdmin && (
+                      <LastEditedBadge name={s.lastEditedBy} at={s.lastEditedAt} />
+                    )}
                     <DeleteHistoryButton sessionId={s.id} />
                   </div>
                 </div>

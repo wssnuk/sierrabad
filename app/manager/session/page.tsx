@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
 import {
   getSession,
   createSession,
@@ -14,6 +15,7 @@ import SubmitButton from "./SubmitButton";
 import CloseSessionButton from "./CloseSessionButton";
 import { CourtIcon, PeopleIcon, ShuttleIcon } from "./Icons";
 import Footer from "@/components/Footer";
+import LastEditedBadge from "@/components/LastEditedBadge";
 
 const fontStack =
   "var(--font-thai), var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
@@ -31,10 +33,13 @@ export default async function SessionPage({
   searchParams: Promise<{ id?: string }>;
 }) {
   const { id } = await searchParams;
-  const [session, allMembers] = await Promise.all([
+  const [session, allMembers, authSession] = await Promise.all([
     getSession(id),
     prisma.member.findMany({ orderBy: { name: "asc" } }),
+    auth(),
   ]);
+  const role = (authSession?.user as { role?: string } | undefined)?.role;
+  const isAdmin = role === "ADMIN";
 
   if (!session) {
     return (
@@ -131,15 +136,23 @@ export default async function SessionPage({
       style={{ fontFamily: fontStack }}
     >
       <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <EditableSessionName
             sessionId={session.id}
             courtName={session.courtName}
             shuttlePrice={session.shuttlePrice}
           />
-          <a href="/manager" className="text-sm text-purple-600 font-semibold">
-            ← กลับหน้าหลัก
-          </a>
+          <div className="flex items-center gap-3">
+            {isAdmin && (
+              <LastEditedBadge
+                name={session.lastEditedBy}
+                at={session.lastEditedAt}
+              />
+            )}
+            <a href="/manager" className="text-sm text-purple-600 font-semibold">
+              ← กลับหน้าหลัก
+            </a>
+          </div>
         </div>
 
         {/* Check-in */}

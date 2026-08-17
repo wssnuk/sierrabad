@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
 import { sendLineSummary } from "@/lib/line";
 import { revalidatePath } from "next/cache";
 
@@ -20,6 +21,15 @@ const sessionInclude = {
   },
 };
 
+async function touchEditor(sessionId: string) {
+  const session = await auth();
+  const name = session?.user?.name ?? "ไม่ทราบชื่อ";
+  await prisma.session.update({
+    where: { id: sessionId },
+    data: { lastEditedBy: name, lastEditedAt: new Date() },
+  });
+}
+
 async function deleteSessionCascade(sessionId: string) {
   const games = await prisma.game.findMany({
     where: { sessionId },
@@ -34,9 +44,6 @@ async function deleteSessionCascade(sessionId: string) {
   await prisma.session.delete({ where: { id: sessionId } });
 }
 
-// Auto-close any session left OPEN from a previous day, and clean up
-// accidental duplicate OPEN sessions for today (from double-clicks etc).
-// Exported so any page (session, admin dashboard) can trigger it.
 export async function runSessionMaintenance() {
   const { start, end } = todayRange();
 
@@ -96,8 +103,17 @@ export async function createSession(formData: FormData) {
     return;
   }
 
+  const authSession = await auth();
+  const editorName = authSession?.user?.name ?? "ไม่ทราบชื่อ";
+
   await prisma.session.create({
-    data: { courtName, shuttlePrice, status: "OPEN" },
+    data: {
+      courtName,
+      shuttlePrice,
+      status: "OPEN",
+      lastEditedBy: editorName,
+      lastEditedAt: new Date(),
+    },
   });
 
   revalidatePath("/manager/session");
@@ -115,6 +131,7 @@ export async function updateSessionSettings(
     where: { id: sessionId },
     data: { courtName, shuttlePrice: shuttlePrice || 0 },
   });
+  await touchEditor(sessionId);
   revalidatePath("/manager/session");
 }
 
@@ -125,6 +142,7 @@ export async function checkInMember(sessionId: string, memberId: string) {
   if (!existing) {
     await prisma.checkIn.create({ data: { sessionId, memberId } });
   }
+  await touchEditor(sessionId);
   revalidatePath("/manager/session");
 }
 
@@ -135,6 +153,7 @@ export async function addAndCheckInMember(sessionId: string, formData: FormData)
 
   const member = await prisma.member.create({ data: { name, courtFee } });
   await prisma.checkIn.create({ data: { sessionId, memberId: member.id } });
+  await touchEditor(sessionId);
 
   revalidatePath("/manager/session");
   revalidatePath("/manager/members");
@@ -165,6 +184,7 @@ export async function createGame(formData: FormData) {
     });
   }
 
+  await touchEditor(sessionId);
   revalidatePath("/manager/session");
 }
 
@@ -179,7 +199,7 @@ export async function updateGame(
     (formData.get("shuttleNumber") as string)?.trim() || null;
   const uniquePlayers = Array.from(new Set(playerIds));
 
-  await prisma.game.update({
+  const game = await prisma.game.update({
     where: { id: gameId },
     data: { courtName, shuttleCount, shuttleNumber },
   });
@@ -191,12 +211,18 @@ export async function updateGame(
     });
   }
 
+  await touchEditor(game.sessionId);
   revalidatePath("/manager/session");
 }
 
 export async function deleteGame(gameId: string) {
+  const game = await prisma.game.findUnique({
+    where: { id: gameId },
+    select: { sessionId: true },
+  });
   await prisma.gamePlayer.deleteMany({ where: { gameId } });
   await prisma.game.delete({ where: { id: gameId } });
+  if (game) await touchEditor(game.sessionId);
   revalidatePath("/manager/session");
 }
 
@@ -205,11 +231,12 @@ export async function updateCheckInFee(checkInId: string, formData: FormData) {
   const courtFeeOverride =
     value === null || value === "" ? null : Number(value);
 
-  await prisma.checkIn.update({
+  const checkIn = await prisma.checkIn.update({
     where: { id: checkInId },
     data: { courtFeeOverride },
   });
 
+  await touchEditor(checkIn.sessionId);
   revalidatePath("/manager/session");
 }
 
@@ -231,6 +258,7 @@ export async function updateActuals(sessionId: string, formData: FormData) {
     },
   });
 
+  await touchEditor(sessionId);
   revalidatePath("/manager/session");
 }
 
@@ -302,6 +330,7 @@ export async function closeSession(sessionId: string) {
     where: { id: sessionId },
     data: { status: "CLOSED" },
   });
+  await touchEditor(sessionId);
   revalidatePath("/manager/session");
   revalidatePath("/manager");
   revalidatePath("/manager/history");

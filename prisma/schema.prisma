@@ -31,6 +31,8 @@ model Session {
   status             String    @default("OPEN")
   actualCourtFeePaid Int?
   actualShuttleCount Int?
+  lastEditedBy       String?
+  lastEditedAt       DateTime?
   checkIns           CheckIn[]
   games              Game[]
 }
