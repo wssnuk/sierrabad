@@ -106,6 +106,7 @@ export async function createSession(formData: FormData) {
   ]);
   if (existing) {
     revalidatePath("/manager/session");
+    revalidatePath("/admin");
     return;
   }
 
@@ -120,6 +121,7 @@ export async function createSession(formData: FormData) {
   });
 
   revalidatePath("/manager/session");
+  revalidatePath("/admin");
 }
 
 export async function updateSessionSettings(
@@ -142,6 +144,7 @@ export async function updateSessionSettings(
     },
   });
   revalidatePath("/manager/session");
+  revalidatePath("/admin");
 }
 
 export async function checkInMember(sessionId: string, memberId: string) {
@@ -160,6 +163,7 @@ export async function checkInMember(sessionId: string, memberId: string) {
   ]);
 
   revalidatePath("/manager/session");
+  revalidatePath("/admin");
 }
 
 export async function addAndCheckInMember(sessionId: string, formData: FormData) {
@@ -179,6 +183,7 @@ export async function addAndCheckInMember(sessionId: string, formData: FormData)
   ]);
 
   revalidatePath("/manager/session");
+  revalidatePath("/admin");
   revalidatePath("/manager/members");
 }
 
@@ -216,6 +221,7 @@ export async function createGame(formData: FormData) {
   }
 
   revalidatePath("/manager/session");
+  revalidatePath("/admin");
 }
 
 export async function updateGame(
@@ -256,6 +262,7 @@ export async function updateGame(
   ]);
 
   revalidatePath("/manager/session");
+  revalidatePath("/admin");
 }
 
 export async function deleteGame(gameId: string) {
@@ -276,6 +283,7 @@ export async function deleteGame(gameId: string) {
   await prisma.game.delete({ where: { id: gameId } });
 
   revalidatePath("/manager/session");
+  revalidatePath("/admin");
 }
 
 export async function updateCheckInFee(checkInId: string, formData: FormData) {
@@ -296,6 +304,7 @@ export async function updateCheckInFee(checkInId: string, formData: FormData) {
   });
 
   revalidatePath("/manager/session");
+  revalidatePath("/admin");
 }
 
 export async function updateActuals(sessionId: string, formData: FormData) {
@@ -316,6 +325,7 @@ export async function updateActuals(sessionId: string, formData: FormData) {
   });
 
   revalidatePath("/manager/session");
+  revalidatePath("/admin");
 }
 
 export async function removeCheckIn(checkInId: string) {
@@ -325,6 +335,7 @@ export async function removeCheckIn(checkInId: string) {
     data: { lastEditedBy: await getEditorName(), lastEditedAt: new Date() },
   });
   revalidatePath("/manager/session");
+  revalidatePath("/admin");
 }
 
 // Each game always has exactly 4 players, so each player's fair share of
@@ -423,4 +434,5 @@ export async function closeSession(sessionId: string) {
   revalidatePath("/manager/session");
   revalidatePath("/manager");
   revalidatePath("/manager/history");
+  revalidatePath("/admin");
 }

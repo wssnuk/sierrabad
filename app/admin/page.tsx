@@ -4,6 +4,7 @@ import TopBar from "@/components/TopBar";
 import Footer from "@/components/Footer";
 import DeleteSessionButton from "./DeleteSessionButton";
 import LastEditedBadge from "@/components/LastEditedBadge";
+import AutoRefresh from "./AutoRefresh";
 
 const fontStack =
   "'Noto Sans Thai', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
@@ -65,6 +66,7 @@ export default async function AdminDashboard() {
         className="min-h-screen bg-gradient-to-b from-[#FBF8FF] to-[#F3EAFF] p-4 sm:p-6"
         style={{ fontFamily: fontStack }}
       >
+        <AutoRefresh intervalMs={15000} />
         <TopBar zone="โซนผู้ดูแลระบบ · Dashboard" />
 
         <div className="max-w-5xl mx-auto">
