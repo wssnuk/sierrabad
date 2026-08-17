@@ -27,6 +27,10 @@ const cardAccents = [
   "border-l-4 border-violet-300",
 ];
 
+function formatShuttles(n: number) {
+  return Number.isInteger(n) ? String(n) : n.toFixed(1);
+}
+
 export default async function SessionPage({
   searchParams,
 }: {
@@ -107,26 +111,28 @@ export default async function SessionPage({
   const checkedInIds = new Set(session.checkIns.map((c) => c.memberId));
   const notCheckedIn = allMembers.filter((m) => !checkedInIds.has(m.id));
 
-  const gamesShuttleTotal = session.games.reduce(
-    (sum, g) => sum + g.shuttleCount,
-    0
-  );
-  const totalShuttles = session.actualShuttleCount ?? gamesShuttleTotal;
+  const totalShuttles =
+    session.actualShuttleCount ??
+    session.games.reduce((sum, g) => sum + g.shuttleCount, 0);
+  const shuttleCost = totalShuttles * session.shuttlePrice;
   const memberCount = session.checkIns.length;
-  const shuttleShare =
-    memberCount > 0
-      ? Math.round((totalShuttles * session.shuttlePrice) / memberCount)
-      : 0;
 
   const courtFeeCollected = session.checkIns.reduce(
     (sum, c) => sum + (c.courtFeeOverride ?? c.member.courtFee),
     0
   );
 
+  // Each game has exactly 4 players, so a fair per-player share of that
+  // game's shuttles is shuttleCount / 4 — summed across every game a
+  // member actually played in (not split equally among everyone).
   const gameCountByMember: Record<string, number> = {};
+  const shuttleUsageByMember: Record<string, number> = {};
   session.games.forEach((g) => {
+    const perPlayer = g.shuttleCount / 4;
     g.players.forEach((p) => {
       gameCountByMember[p.memberId] = (gameCountByMember[p.memberId] || 0) + 1;
+      shuttleUsageByMember[p.memberId] =
+        (shuttleUsageByMember[p.memberId] || 0) + perPlayer;
     });
   });
 
@@ -262,11 +268,14 @@ export default async function SessionPage({
           </div>
         </div>
 
-        {/* Detailed member summary */}
+        {/* Detailed member summary — proportional to actual matches played */}
         <div className="bg-white rounded-2xl shadow-md p-6 border-l-4 border-purple-300">
-          <h2 className="font-bold text-[#3B0764] mb-4 text-lg">
+          <h2 className="font-bold text-[#3B0764] mb-1 text-lg">
             สรุปสมาชิกแบบละเอียด
           </h2>
+          <p className="text-xs text-gray-500 mb-4">
+            ค่าลูกคิดตามจำนวนแมทช์ที่แต่ละคนลงเล่นจริง ไม่ได้หารเท่ากันทุกคน
+          </p>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -274,36 +283,40 @@ export default async function SessionPage({
                   <th className="pb-2 pr-3">ชื่อ</th>
                   <th className="pb-2 pr-3">เล่นไปแล้ว</th>
                   <th className="pb-2 pr-3">ค่าสนาม (แก้ไขได้)</th>
-                  <th className="pb-2 pr-3">ส่วนแบ่งค่าลูก</th>
+                  <th className="pb-2 pr-3">ลูกที่ใช้ (ค่าลูก)</th>
                   <th className="pb-2">รวมที่ต้องจ่าย</th>
                 </tr>
               </thead>
               <tbody>
-                {session.checkIns.map((c, i) => (
-                  <tr
-                    key={c.id}
-                    className={i % 2 === 0 ? "bg-purple-50/40" : ""}
-                  >
-                    <td className="py-2.5 pr-3 font-medium rounded-l-lg pl-2">
-                      {c.member.name}
-                    </td>
-                    <td className="py-2.5 pr-3 text-gray-600">
-                      {gameCountByMember[c.memberId] || 0} เกมส์
-                    </td>
-                    <td className="py-2.5 pr-3">
-                      <CheckInFeeCell
-                        checkInId={c.id}
-                        fee={c.courtFeeOverride ?? c.member.courtFee}
-                      />
-                    </td>
-                    <td className="py-2.5 pr-3 text-gray-600">
-                      ฿{shuttleShare}
-                    </td>
-                    <td className="py-2.5 font-bold text-purple-700 rounded-r-lg">
-                      ฿{(c.courtFeeOverride ?? c.member.courtFee) + shuttleShare}
-                    </td>
-                  </tr>
-                ))}
+                {session.checkIns.map((c, i) => {
+                  const shuttlesUsed = shuttleUsageByMember[c.memberId] || 0;
+                  const memberShuttleCost = Math.round(
+                    shuttlesUsed * session.shuttlePrice
+                  );
+                  const fee = c.courtFeeOverride ?? c.member.courtFee;
+                  return (
+                    <tr
+                      key={c.id}
+                      className={i % 2 === 0 ? "bg-purple-50/40" : ""}
+                    >
+                      <td className="py-2.5 pr-3 font-medium rounded-l-lg pl-2">
+                        {c.member.name}
+                      </td>
+                      <td className="py-2.5 pr-3 text-gray-600">
+                        {gameCountByMember[c.memberId] || 0} แมทช์
+                      </td>
+                      <td className="py-2.5 pr-3">
+                        <CheckInFeeCell checkInId={c.id} fee={fee} />
+                      </td>
+                      <td className="py-2.5 pr-3 text-gray-600">
+                        {formatShuttles(shuttlesUsed)} ลูก (฿{memberShuttleCost})
+                      </td>
+                      <td className="py-2.5 font-bold text-purple-700 rounded-r-lg">
+                        ฿{fee + memberShuttleCost}
+                      </td>
+                    </tr>
+                  );
+                })}
                 {memberCount === 0 && (
                   <tr>
                     <td colSpan={5} className="py-6 text-center text-gray-400">

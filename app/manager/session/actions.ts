@@ -40,6 +40,9 @@ async function deleteSessionCascade(sessionId: string) {
   await prisma.session.delete({ where: { id: sessionId } });
 }
 
+// Fast maintenance: closes stale sessions, and only does the heavier
+// duplicate-detection work if a quick count shows there's actually more
+// than one OPEN session today (the common case is exactly 1 or 0).
 export async function runSessionMaintenance() {
   const { start, end } = todayRange();
 
@@ -48,12 +51,16 @@ export async function runSessionMaintenance() {
     data: { status: "CLOSED" },
   });
 
+  const openCount = await prisma.session.count({
+    where: { status: "OPEN", date: { gte: start, lte: end } },
+  });
+  if (openCount <= 1) return;
+
   const openSessions = await prisma.session.findMany({
     where: { status: "OPEN", date: { gte: start, lte: end } },
     include: { checkIns: true, games: true },
     orderBy: { date: "asc" },
   });
-  if (openSessions.length <= 1) return;
 
   const sorted = [...openSessions].sort(
     (a, b) =>
@@ -280,12 +287,10 @@ export async function updateCheckInFee(checkInId: string, formData: FormData) {
 
   const editorName = await getEditorName();
 
-  const [checkIn] = await Promise.all([
-    prisma.checkIn.update({
-      where: { id: checkInId },
-      data: { courtFeeOverride },
-    }),
-  ]);
+  const checkIn = await prisma.checkIn.update({
+    where: { id: checkInId },
+    data: { courtFeeOverride },
+  });
 
   await prisma.session.update({
     where: { id: checkIn.sessionId },
@@ -320,6 +325,22 @@ export async function updateActuals(sessionId: string, formData: FormData) {
   revalidatePath("/manager/session");
 }
 
+// Each game always has exactly 4 players, so each player's fair share of
+// that game's shuttles is shuttleCount / 4. Summed across all games they
+// actually played — not split equally among everyone checked in.
+function computeMemberShuttleUsage(
+  games: { shuttleCount: number; players: { memberId: string }[] }[]
+) {
+  const usage: Record<string, number> = {};
+  games.forEach((g) => {
+    const perPlayer = g.shuttleCount / 4;
+    g.players.forEach((p) => {
+      usage[p.memberId] = (usage[p.memberId] || 0) + perPlayer;
+    });
+  });
+  return usage;
+}
+
 async function buildLineSummary(sessionId: string) {
   const session = await prisma.session.findUnique({
     where: { id: sessionId },
@@ -340,10 +361,9 @@ async function buildLineSummary(sessionId: string) {
     (sum, c) => sum + (c.courtFeeOverride ?? c.member.courtFee),
     0
   );
-  const shuttleShare =
-    memberCount > 0 ? Math.round(shuttleCost / memberCount) : 0;
 
   const gameCountByMember: Record<string, number> = {};
+  const shuttleUsage = computeMemberShuttleUsage(session.games);
   session.games.forEach((g) => {
     g.players.forEach((p) => {
       gameCountByMember[p.memberId] = (gameCountByMember[p.memberId] || 0) + 1;
@@ -360,8 +380,10 @@ async function buildLineSummary(sessionId: string) {
     .map((c) => {
       const fee = c.courtFeeOverride ?? c.member.courtFee;
       const games = gameCountByMember[c.memberId] || 0;
-      const total = fee + shuttleShare;
-      return `• ${c.member.name} — ${games} เกมส์ · รวม ฿${total}`;
+      const shuttles = shuttleUsage[c.memberId] || 0;
+      const shuttleCostForMember = Math.round(shuttles * session.shuttlePrice);
+      const total = fee + shuttleCostForMember;
+      return `• ${c.member.name} — ${games} แมทช์ · ${shuttles} ลูก · รวม ฿${total}`;
     })
     .join("\n");
 
