@@ -34,21 +34,17 @@ async function deleteSessionCascade(sessionId: string) {
   await prisma.session.delete({ where: { id: sessionId } });
 }
 
-// Auto-close any session left OPEN from a previous day so it doesn't
-// linger as a zombie session forever.
-async function closeStaleSessions() {
-  const { start } = todayRange();
+// Auto-close any session left OPEN from a previous day, and clean up
+// accidental duplicate OPEN sessions for today (from double-clicks etc).
+// Exported so any page (session, admin dashboard) can trigger it.
+export async function runSessionMaintenance() {
+  const { start, end } = todayRange();
+
   await prisma.session.updateMany({
     where: { status: "OPEN", date: { lt: start } },
     data: { status: "CLOSED" },
   });
-}
 
-// If accidental double-clicks created multiple empty OPEN sessions for
-// today (e.g. from a slow connection), keep only the one with the most
-// activity and remove the empty duplicates automatically.
-async function dedupeTodaySessions() {
-  const { start, end } = todayRange();
   const openSessions = await prisma.session.findMany({
     where: { status: "OPEN", date: { gte: start, lte: end } },
     include: { checkIns: true, games: true },
@@ -70,8 +66,7 @@ async function dedupeTodaySessions() {
 }
 
 export async function getSession(sessionId?: string) {
-  await closeStaleSessions();
-  await dedupeTodaySessions();
+  await runSessionMaintenance();
 
   if (sessionId) {
     return prisma.session.findUnique({
@@ -92,7 +87,6 @@ export async function createSession(formData: FormData) {
   const courtName = formData.get("courtName") as string;
   const shuttlePrice = Number(formData.get("shuttlePrice")) || 0;
 
-  // Guard against accidental double-submit creating a duplicate session.
   const { start, end } = todayRange();
   const existing = await prisma.session.findFirst({
     where: { status: "OPEN", date: { gte: start, lte: end } },

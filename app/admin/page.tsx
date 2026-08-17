@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
+import { runSessionMaintenance } from "../manager/session/actions";
 import TopBar from "@/components/TopBar";
 import Footer from "@/components/Footer";
+import DeleteSessionButton from "./DeleteSessionButton";
 
 const fontStack =
   "var(--font-thai), var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
@@ -30,6 +32,8 @@ function StatCard({
 }
 
 export default async function AdminDashboard() {
+  await runSessionMaintenance();
+
   const [managersCount, membersCount, totalSessions, closedSessions, todayOpenSession, recentSessions] =
     await Promise.all([
       prisma.user.count({ where: { role: "MANAGER" } }),
@@ -135,64 +139,66 @@ export default async function AdminDashboard() {
               <thead>
                 <tr className="text-left text-xs text-gray-500 border-b">
                   <th className="pb-2 pr-3">สนาม</th>
-                  <th className="pb-2 pr-3">วันที่</th>
+                  <th className="pb-2 pr-3">วันที่ / เวลา</th>
                   <th className="pb-2 pr-3">สมาชิก</th>
                   <th className="pb-2 pr-3">แมทช์</th>
-                  <th className="pb-2">สถานะ</th>
+                  <th className="pb-2 pr-3">สถานะ</th>
+                  <th className="pb-2"></th>
                 </tr>
               </thead>
               <tbody>
-                {recentSessions.map((s, i) => {
-                  const row = (
-                    <>
-                      <td className="py-2.5 pr-3 font-medium pl-2 rounded-l-lg">
-                        {s.status === "OPEN" ? (
-                          <a
-                            href={`/manager/session?id=${s.id}`}
-                            className="text-purple-700 hover:underline"
-                          >
-                            {s.courtName}
-                          </a>
-                        ) : (
-                          s.courtName
-                        )}
-                      </td>
-                      <td className="py-2.5 pr-3 text-gray-600">
-                        {new Date(s.date).toLocaleDateString("th-TH", {
-                          day: "numeric",
-                          month: "short",
-                          year: "2-digit",
-                        })}
-                      </td>
-                      <td className="py-2.5 pr-3 text-gray-600">
-                        {s.checkIns.length} คน
-                      </td>
-                      <td className="py-2.5 pr-3 text-gray-600">
-                        {s.games.length} แมทช์
-                      </td>
-                      <td className="py-2.5 rounded-r-lg">
-                        <span
-                          className={
-                            "px-2.5 py-1 rounded-full text-xs font-semibold " +
-                            (s.status === "OPEN"
-                              ? "bg-emerald-100 text-emerald-700"
-                              : "bg-gray-100 text-gray-600")
-                          }
+                {recentSessions.map((s, i) => (
+                  <tr key={s.id} className={i % 2 === 0 ? "bg-purple-50/40" : ""}>
+                    <td className="py-2.5 pr-3 font-medium pl-2 rounded-l-lg">
+                      {s.status === "OPEN" ? (
+                        <a
+                          href={`/manager/session?id=${s.id}`}
+                          className="text-purple-700 hover:underline"
                         >
-                          {s.status === "OPEN" ? "กำลังจัด" : "ปิดแล้ว"}
-                        </span>
-                      </td>
-                    </>
-                  );
-                  return (
-                    <tr key={s.id} className={i % 2 === 0 ? "bg-purple-50/40" : ""}>
-                      {row}
-                    </tr>
-                  );
-                })}
+                          {s.courtName}
+                        </a>
+                      ) : (
+                        s.courtName
+                      )}
+                    </td>
+                    <td className="py-2.5 pr-3 text-gray-600">
+                      {new Date(s.date).toLocaleDateString("th-TH", {
+                        day: "numeric",
+                        month: "short",
+                        year: "2-digit",
+                      })}{" "}
+                      ·{" "}
+                      {new Date(s.date).toLocaleTimeString("th-TH", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </td>
+                    <td className="py-2.5 pr-3 text-gray-600">
+                      {s.checkIns.length} คน
+                    </td>
+                    <td className="py-2.5 pr-3 text-gray-600">
+                      {s.games.length} แมทช์
+                    </td>
+                    <td className="py-2.5 pr-3">
+                      <span
+                        className={
+                          "px-2.5 py-1 rounded-full text-xs font-semibold " +
+                          (s.status === "OPEN"
+                            ? "bg-emerald-100 text-emerald-700"
+                            : "bg-gray-100 text-gray-600")
+                        }
+                      >
+                        {s.status === "OPEN" ? "กำลังจัด" : "ปิดแล้ว"}
+                      </span>
+                    </td>
+                    <td className="py-2.5 rounded-r-lg pr-2 text-right">
+                      <DeleteSessionButton sessionId={s.id} />
+                    </td>
+                  </tr>
+                ))}
                 {recentSessions.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="py-6 text-center text-gray-400">
+                    <td colSpan={6} className="py-6 text-center text-gray-400">
                       ยังไม่มีข้อมูลก๊วนในระบบ
                     </td>
                   </tr>
