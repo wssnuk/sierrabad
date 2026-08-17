@@ -21,13 +21,9 @@ const sessionInclude = {
   },
 };
 
-async function touchEditor(sessionId: string) {
-  const session = await auth();
-  const name = session?.user?.name ?? "ไม่ทราบชื่อ";
-  await prisma.session.update({
-    where: { id: sessionId },
-    data: { lastEditedBy: name, lastEditedAt: new Date() },
-  });
+async function getEditorName() {
+  const authSession = await auth();
+  return authSession?.user?.name ?? "ไม่ทราบชื่อ";
 }
 
 async function deleteSessionCascade(sessionId: string) {
@@ -95,16 +91,16 @@ export async function createSession(formData: FormData) {
   const shuttlePrice = Number(formData.get("shuttlePrice")) || 0;
 
   const { start, end } = todayRange();
-  const existing = await prisma.session.findFirst({
-    where: { status: "OPEN", date: { gte: start, lte: end } },
-  });
+  const [existing, editorName] = await Promise.all([
+    prisma.session.findFirst({
+      where: { status: "OPEN", date: { gte: start, lte: end } },
+    }),
+    getEditorName(),
+  ]);
   if (existing) {
     revalidatePath("/manager/session");
     return;
   }
-
-  const authSession = await auth();
-  const editorName = authSession?.user?.name ?? "ไม่ทราบชื่อ";
 
   await prisma.session.create({
     data: {
@@ -127,22 +123,37 @@ export async function updateSessionSettings(
   const shuttlePrice = Number(formData.get("shuttlePrice"));
   if (!courtName) return;
 
+  const editorName = await getEditorName();
+
   await prisma.session.update({
     where: { id: sessionId },
-    data: { courtName, shuttlePrice: shuttlePrice || 0 },
+    data: {
+      courtName,
+      shuttlePrice: shuttlePrice || 0,
+      lastEditedBy: editorName,
+      lastEditedAt: new Date(),
+    },
   });
-  await touchEditor(sessionId);
   revalidatePath("/manager/session");
 }
 
 export async function checkInMember(sessionId: string, memberId: string) {
-  const existing = await prisma.checkIn.findFirst({
-    where: { sessionId, memberId },
-  });
+  const [existing, editorName] = await Promise.all([
+    prisma.checkIn.findFirst({ where: { sessionId, memberId } }),
+    getEditorName(),
+  ]);
+
+  const ops: Promise<unknown>[] = [
+    prisma.session.update({
+      where: { id: sessionId },
+      data: { lastEditedBy: editorName, lastEditedAt: new Date() },
+    }),
+  ];
   if (!existing) {
-    await prisma.checkIn.create({ data: { sessionId, memberId } });
+    ops.push(prisma.checkIn.create({ data: { sessionId, memberId } }));
   }
-  await touchEditor(sessionId);
+  await Promise.all(ops);
+
   revalidatePath("/manager/session");
 }
 
@@ -151,9 +162,16 @@ export async function addAndCheckInMember(sessionId: string, formData: FormData)
   const courtFee = Number(formData.get("courtFee")) || 0;
   if (!name) return;
 
+  const editorName = await getEditorName();
   const member = await prisma.member.create({ data: { name, courtFee } });
-  await prisma.checkIn.create({ data: { sessionId, memberId: member.id } });
-  await touchEditor(sessionId);
+
+  await Promise.all([
+    prisma.checkIn.create({ data: { sessionId, memberId: member.id } }),
+    prisma.session.update({
+      where: { id: sessionId },
+      data: { lastEditedBy: editorName, lastEditedAt: new Date() },
+    }),
+  ]);
 
   revalidatePath("/manager/session");
   revalidatePath("/manager/members");
@@ -169,14 +187,22 @@ export async function createGame(formData: FormData) {
     new Set(formData.getAll("players") as string[])
   );
 
+  const editorName = await getEditorName();
+
   if (!courtName) {
     const count = await prisma.game.count({ where: { sessionId } });
     courtName = `แมทช์ ${count + 1}`;
   }
 
-  const game = await prisma.game.create({
-    data: { sessionId, courtName, shuttleCount, shuttleNumber },
-  });
+  const [game] = await Promise.all([
+    prisma.game.create({
+      data: { sessionId, courtName, shuttleCount, shuttleNumber },
+    }),
+    prisma.session.update({
+      where: { id: sessionId },
+      data: { lastEditedBy: editorName, lastEditedAt: new Date() },
+    }),
+  ]);
 
   if (players.length > 0) {
     await prisma.gamePlayer.createMany({
@@ -184,7 +210,6 @@ export async function createGame(formData: FormData) {
     });
   }
 
-  await touchEditor(sessionId);
   revalidatePath("/manager/session");
 }
 
@@ -199,30 +224,52 @@ export async function updateGame(
     (formData.get("shuttleNumber") as string)?.trim() || null;
   const uniquePlayers = Array.from(new Set(playerIds));
 
-  const game = await prisma.game.update({
-    where: { id: gameId },
-    data: { courtName, shuttleCount, shuttleNumber },
-  });
+  const editorName = await getEditorName();
 
-  await prisma.gamePlayer.deleteMany({ where: { gameId } });
-  if (uniquePlayers.length > 0) {
-    await prisma.gamePlayer.createMany({
-      data: uniquePlayers.map((memberId) => ({ gameId, memberId, team: 0 })),
-    });
-  }
+  const [game] = await Promise.all([
+    prisma.game.update({
+      where: { id: gameId },
+      data: { courtName, shuttleCount, shuttleNumber },
+    }),
+    prisma.gamePlayer.deleteMany({ where: { gameId } }),
+  ]);
 
-  await touchEditor(game.sessionId);
+  await Promise.all([
+    uniquePlayers.length > 0
+      ? prisma.gamePlayer.createMany({
+          data: uniquePlayers.map((memberId) => ({
+            gameId,
+            memberId,
+            team: 0,
+          })),
+        })
+      : Promise.resolve(),
+    prisma.session.update({
+      where: { id: game.sessionId },
+      data: { lastEditedBy: editorName, lastEditedAt: new Date() },
+    }),
+  ]);
+
   revalidatePath("/manager/session");
 }
 
 export async function deleteGame(gameId: string) {
-  const game = await prisma.game.findUnique({
-    where: { id: gameId },
-    select: { sessionId: true },
-  });
-  await prisma.gamePlayer.deleteMany({ where: { gameId } });
+  const [game, editorName] = await Promise.all([
+    prisma.game.findUnique({ where: { id: gameId }, select: { sessionId: true } }),
+    getEditorName(),
+  ]);
+
+  await Promise.all([
+    prisma.gamePlayer.deleteMany({ where: { gameId } }),
+    game
+      ? prisma.session.update({
+          where: { id: game.sessionId },
+          data: { lastEditedBy: editorName, lastEditedAt: new Date() },
+        })
+      : Promise.resolve(),
+  ]);
   await prisma.game.delete({ where: { id: gameId } });
-  if (game) await touchEditor(game.sessionId);
+
   revalidatePath("/manager/session");
 }
 
@@ -231,18 +278,28 @@ export async function updateCheckInFee(checkInId: string, formData: FormData) {
   const courtFeeOverride =
     value === null || value === "" ? null : Number(value);
 
-  const checkIn = await prisma.checkIn.update({
-    where: { id: checkInId },
-    data: { courtFeeOverride },
+  const editorName = await getEditorName();
+
+  const [checkIn] = await Promise.all([
+    prisma.checkIn.update({
+      where: { id: checkInId },
+      data: { courtFeeOverride },
+    }),
+  ]);
+
+  await prisma.session.update({
+    where: { id: checkIn.sessionId },
+    data: { lastEditedBy: editorName, lastEditedAt: new Date() },
   });
 
-  await touchEditor(checkIn.sessionId);
   revalidatePath("/manager/session");
 }
 
 export async function updateActuals(sessionId: string, formData: FormData) {
   const actualCourtFeePaidRaw = formData.get("actualCourtFeePaid");
   const actualShuttleCountRaw = formData.get("actualShuttleCount");
+
+  const editorName = await getEditorName();
 
   await prisma.session.update({
     where: { id: sessionId },
@@ -255,10 +312,11 @@ export async function updateActuals(sessionId: string, formData: FormData) {
         actualShuttleCountRaw === null || actualShuttleCountRaw === ""
           ? null
           : Number(actualShuttleCountRaw),
+      lastEditedBy: editorName,
+      lastEditedAt: new Date(),
     },
   });
 
-  await touchEditor(sessionId);
   revalidatePath("/manager/session");
 }
 
@@ -326,11 +384,16 @@ export async function sendLineNow(sessionId: string) {
 }
 
 export async function closeSession(sessionId: string) {
+  const editorName = await getEditorName();
+
   await prisma.session.update({
     where: { id: sessionId },
-    data: { status: "CLOSED" },
+    data: {
+      status: "CLOSED",
+      lastEditedBy: editorName,
+      lastEditedAt: new Date(),
+    },
   });
-  await touchEditor(sessionId);
   revalidatePath("/manager/session");
   revalidatePath("/manager");
   revalidatePath("/manager/history");
