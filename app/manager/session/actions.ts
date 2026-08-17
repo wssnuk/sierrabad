@@ -12,17 +12,38 @@ function todayRange() {
   return { start, end };
 }
 
-export async function getTodaySession() {
+const sessionInclude = {
+  checkIns: { include: { member: true } },
+  games: {
+    include: { players: { include: { member: true } } },
+    orderBy: { createdAt: "asc" as const },
+  },
+};
+
+// Auto-close any session left OPEN from a previous day so it doesn't
+// linger as a zombie session forever.
+async function closeStaleSessions() {
+  const { start } = todayRange();
+  await prisma.session.updateMany({
+    where: { status: "OPEN", date: { lt: start } },
+    data: { status: "CLOSED" },
+  });
+}
+
+export async function getSession(sessionId?: string) {
+  await closeStaleSessions();
+
+  if (sessionId) {
+    return prisma.session.findUnique({
+      where: { id: sessionId },
+      include: sessionInclude,
+    });
+  }
+
   const { start, end } = todayRange();
   return prisma.session.findFirst({
     where: { date: { gte: start, lte: end }, status: "OPEN" },
-    include: {
-      checkIns: { include: { member: true } },
-      games: {
-        include: { players: { include: { member: true } } },
-        orderBy: { createdAt: "asc" },
-      },
-    },
+    include: sessionInclude,
     orderBy: { date: "desc" },
   });
 }
@@ -205,9 +226,6 @@ async function buildLineSummary(sessionId: string) {
     year: "numeric",
   });
 
-  // Note: this summary intentionally excludes actual paid amounts and
-  // profit/loss figures — those are for admin/manager eyes only, not
-  // shared with members via LINE.
   const memberLines = session.checkIns
     .map((c) => {
       const fee = c.courtFeeOverride ?? c.member.courtFee;

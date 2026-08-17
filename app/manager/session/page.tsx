@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import {
-  getTodaySession,
+  getSession,
   createSession,
   checkInMember,
   addAndCheckInMember,
@@ -11,6 +11,7 @@ import GameAssignForm from "./GameAssignForm";
 import GameCard from "./GameCard";
 import CheckInFeeCell from "./CheckInFeeCell";
 import ActualsForm from "./ActualsForm";
+import SubmitButton from "./SubmitButton";
 import { CourtIcon, PeopleIcon, ShuttleIcon } from "./Icons";
 import Footer from "@/components/Footer";
 
@@ -24,11 +25,16 @@ const cardAccents = [
   "border-l-4 border-violet-300",
 ];
 
-export default async function SessionPage() {
-  const session = await getTodaySession();
-  const allMembers = await prisma.member.findMany({
-    orderBy: { name: "asc" },
-  });
+export default async function SessionPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ id?: string }>;
+}) {
+  const { id } = await searchParams;
+  const [session, allMembers] = await Promise.all([
+    getSession(id),
+    prisma.member.findMany({ orderBy: { name: "asc" } }),
+  ]);
 
   if (!session) {
     return (
@@ -169,12 +175,12 @@ export default async function SessionPage() {
                   key={m.id}
                   action={checkInMember.bind(null, session.id, m.id)}
                 >
-                  <button
-                    type="submit"
-                    className="px-3 py-1.5 rounded-lg border border-purple-200 text-purple-600 text-xs font-semibold hover:bg-purple-50"
+                  <SubmitButton
+                    pendingText="กำลังเช็คอิน..."
+                    className="px-3 py-1.5 rounded-lg border border-purple-200 text-purple-600 text-xs font-semibold hover:bg-purple-50 transition-colors"
                   >
                     + {m.name}
-                  </button>
+                  </SubmitButton>
                 </form>
               ))}
             </div>
@@ -200,12 +206,12 @@ export default async function SessionPage() {
                 placeholder="ค่าสนาม (บาท)"
                 className="w-32 px-3 py-2.5 rounded-lg border border-purple-100 bg-purple-50 text-sm"
               />
-              <button
-                type="submit"
+              <SubmitButton
+                pendingText="กำลังเพิ่ม..."
                 className="px-4 py-2.5 rounded-lg bg-gradient-to-r from-purple-600 to-purple-500 text-white text-sm font-bold"
               >
                 เพิ่ม + เช็คอิน
-              </button>
+              </SubmitButton>
             </form>
           </div>
         </div>

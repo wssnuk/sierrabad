@@ -1,12 +1,15 @@
 import { prisma } from "@/lib/prisma";
 import { CourtIcon, PeopleIcon, ShuttleIcon, CoinIcon } from "../session/Icons";
 import DeleteHistoryButton from "./DeleteHistoryButton";
+import { cleanupOldHistory } from "./actions";
 import Footer from "@/components/Footer";
 
 const fontStack =
   "var(--font-thai), var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
 
 export default async function HistoryPage() {
+  await cleanupOldHistory();
+
   const sessions = await prisma.session.findMany({
     where: { status: "CLOSED" },
     include: {
@@ -23,7 +26,7 @@ export default async function HistoryPage() {
       style={{ fontFamily: fontStack }}
     >
       <div className="max-w-3xl mx-auto w-full flex-1">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-2">
           <h1 className="text-xl sm:text-2xl font-bold text-[#3B0764]">
             ประวัติการจัดก๊วน
           </h1>
@@ -31,6 +34,9 @@ export default async function HistoryPage() {
             ← กลับหน้าหลัก
           </a>
         </div>
+        <p className="text-xs text-gray-400 mb-6">
+          เก็บประวัติย้อนหลังไม่เกิน 7 วัน ระบบจะลบให้อัตโนมัติ
+        </p>
 
         <div className="space-y-4">
           {sessions.map((s) => {
