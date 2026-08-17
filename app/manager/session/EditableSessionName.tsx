@@ -1,40 +1,33 @@
 "use client";
 
 import { useState } from "react";
-import { updateSessionName } from "./actions";
+import { updateSessionSettings } from "./actions";
+import { PencilIcon } from "./Icons";
 
 export default function EditableSessionName({
   sessionId,
   courtName,
+  shuttlePrice,
 }: {
   sessionId: string;
   courtName: string;
+  shuttlePrice: number;
 }) {
   const [editing, setEditing] = useState(false);
 
   if (!editing) {
     return (
       <div className="flex items-center gap-2">
-        <h1 className="text-2xl font-bold text-[#3B0764]">{courtName}</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-[#3B0764]">{courtName}</h1>
+          <p className="text-sm text-gray-500">วันนี้ · ค่าลูกละ ฿{shuttlePrice}</p>
+        </div>
         <button
           onClick={() => setEditing(true)}
-          className="text-purple-300 hover:text-purple-600 transition-colors"
-          aria-label="แก้ไขชื่อสนาม"
+          className="text-purple-300 hover:text-purple-600 transition-colors self-start mt-1"
+          aria-label="แก้ไขชื่อก๊วนและราคาลูกแบด"
         >
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-          >
-            <path d="M12 20h9" strokeLinecap="round" />
-            <path
-              d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <PencilIcon className="w-4 h-4" />
         </button>
       </div>
     );
@@ -43,27 +36,43 @@ export default function EditableSessionName({
   return (
     <form
       action={async (formData) => {
-        await updateSessionName(sessionId, formData);
+        await updateSessionSettings(sessionId, formData);
         setEditing(false);
       }}
-      className="flex items-center gap-2"
+      className="flex items-end gap-2 flex-wrap"
     >
-      <input
-        name="courtName"
-        defaultValue={courtName}
-        autoFocus
-        className="text-xl font-bold text-[#3B0764] px-3 py-1.5 rounded-lg border-2 border-purple-300 bg-white outline-none"
-      />
+      <div>
+        <label className="block text-[11px] font-bold text-purple-500 mb-1">
+          ชื่อสนาม / ชื่อก๊วน
+        </label>
+        <input
+          name="courtName"
+          defaultValue={courtName}
+          autoFocus
+          className="text-base font-bold text-[#3B0764] px-3 py-1.5 rounded-lg border-2 border-purple-300 bg-white outline-none w-44"
+        />
+      </div>
+      <div>
+        <label className="block text-[11px] font-bold text-purple-500 mb-1">
+          ราคาลูกแบด/ลูก
+        </label>
+        <input
+          name="shuttlePrice"
+          type="number"
+          defaultValue={shuttlePrice}
+          className="text-base font-bold text-[#3B0764] px-3 py-1.5 rounded-lg border-2 border-purple-300 bg-white outline-none w-24"
+        />
+      </div>
       <button
         type="submit"
-        className="px-3 py-1.5 rounded-lg bg-purple-600 text-white text-sm font-bold"
+        className="px-3 py-2 rounded-lg bg-purple-600 text-white text-xs font-bold"
       >
         บันทึก
       </button>
       <button
         type="button"
         onClick={() => setEditing(false)}
-        className="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 text-sm font-bold"
+        className="px-3 py-2 rounded-lg bg-gray-100 text-gray-600 text-xs font-bold"
       >
         ยกเลิก
       </button>

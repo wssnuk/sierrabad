@@ -38,12 +38,17 @@ export async function createSession(formData: FormData) {
   revalidatePath("/manager/session");
 }
 
-export async function updateSessionName(sessionId: string, formData: FormData) {
+export async function updateSessionSettings(
+  sessionId: string,
+  formData: FormData
+) {
   const courtName = formData.get("courtName") as string;
+  const shuttlePrice = Number(formData.get("shuttlePrice"));
   if (!courtName) return;
+
   await prisma.session.update({
     where: { id: sessionId },
-    data: { courtName },
+    data: { courtName, shuttlePrice: shuttlePrice || 0 },
   });
   revalidatePath("/manager/session");
 }
@@ -200,6 +205,9 @@ async function buildLineSummary(sessionId: string) {
     year: "numeric",
   });
 
+  // Note: this summary intentionally excludes actual paid amounts and
+  // profit/loss figures — those are for admin/manager eyes only, not
+  // shared with members via LINE.
   const memberLines = session.checkIns
     .map((c) => {
       const fee = c.courtFeeOverride ?? c.member.courtFee;

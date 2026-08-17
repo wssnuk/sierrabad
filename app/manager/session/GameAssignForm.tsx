@@ -6,8 +6,8 @@ import { CourtIcon, ShuttleIcon, TagIcon, PeopleIcon } from "./Icons";
 
 type Member = { id: string; name: string };
 
-const appleFont =
-  "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+const fontStack =
+  "var(--font-thai), var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
 
 export default function GameAssignForm({
   sessionId,
@@ -40,7 +40,7 @@ export default function GameAssignForm({
       action={createGame}
       onSubmit={() => setSelected([])}
       className="space-y-5"
-      style={{ fontFamily: appleFont }}
+      style={{ fontFamily: fontStack }}
     >
       <input type="hidden" name="sessionId" value={sessionId} />
       {selected.map((id) => (

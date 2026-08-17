@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { updateActuals } from "./actions";
+import { updateActuals, sendLineNow } from "./actions";
 import { ScaleIcon, CoinIcon, ShuttleIcon } from "./Icons";
 
 export default function ActualsForm({
@@ -9,13 +9,18 @@ export default function ActualsForm({
   actualCourtFeePaid,
   actualShuttleCount,
   courtFeeCollected,
+  totalShuttles,
+  shuttlePrice,
 }: {
   sessionId: string;
   actualCourtFeePaid: number | null;
   actualShuttleCount: number | null;
   courtFeeCollected: number;
+  totalShuttles: number;
+  shuttlePrice: number;
 }) {
   const [saved, setSaved] = useState(actualCourtFeePaid);
+  const shuttleCost = totalShuttles * shuttlePrice;
 
   const profit =
     saved !== null && saved !== undefined ? courtFeeCollected - saved : null;
@@ -24,11 +29,18 @@ export default function ActualsForm({
     <div className="bg-white rounded-2xl shadow-md p-6 border-l-4 border-emerald-300">
       <h2 className="flex items-center gap-2 font-bold text-[#3B0764] mb-1 text-lg">
         <ScaleIcon className="w-5 h-5 text-emerald-600" />
-        สรุปกำไร-ขาดทุน (ค่าสนาม)
+        สรุปค่าใช้จ่าย &amp; กำไร-ขาดทุน
       </h2>
       <p className="text-xs text-gray-500 mb-4">
-        กรอกยอดที่จ่ายจริงให้สนาม ระบบจะคำนวณส่วนต่างให้อัตโนมัติ
+        เห็นได้เฉพาะแอดมินและผู้จัดการเท่านั้น — ไม่ถูกส่งไป LINE
       </p>
+
+      <div className="flex justify-between text-sm py-1.5 border-b border-dashed mb-3">
+        <span>
+          ค่าลูกแบด ({totalShuttles} ลูก × ฿{shuttlePrice})
+        </span>
+        <span className="font-semibold">฿{shuttleCost}</span>
+      </div>
 
       <form
         action={async (formData: FormData) => {
@@ -72,7 +84,7 @@ export default function ActualsForm({
         </button>
       </form>
 
-      <div className="grid grid-cols-2 gap-3 text-center">
+      <div className="grid grid-cols-2 gap-3 text-center mb-5">
         <div className="bg-gray-50 rounded-xl py-3">
           <p className="text-xs text-gray-500 mb-1">เก็บจากสมาชิก</p>
           <p className="font-bold text-gray-700">฿{courtFeeCollected}</p>
@@ -85,7 +97,7 @@ export default function ActualsForm({
               : profit >= 0
               ? "bg-emerald-50"
               : "bg-red-50")
-        }
+          }
         >
           <p className="text-xs text-gray-500 mb-1">กำไร/ขาดทุน</p>
           <p
@@ -104,6 +116,15 @@ export default function ActualsForm({
           </p>
         </div>
       </div>
+
+      <form action={sendLineNow.bind(null, sessionId)}>
+        <button
+          type="submit"
+          className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 to-purple-500 text-white font-bold text-sm shadow-lg shadow-purple-200 hover:shadow-xl transition-all"
+        >
+          ส่งสรุปเข้า LINE
+        </button>
+      </form>
     </div>
   );
 }
