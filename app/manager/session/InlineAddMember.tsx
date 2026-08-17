@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { addAndCheckInMember } from "./actions";
-import SubmitButton from "./SubmitButton";
 
 export default function InlineAddMember({
   sessionId,
@@ -12,14 +11,29 @@ export default function InlineAddMember({
   existingNames: string[];
 }) {
   const [name, setName] = useState("");
+  const [courtFee, setCourtFee] = useState("");
+  const [isPending, startTransition] = useTransition();
+
   const trimmed = name.trim();
   const isDuplicate = trimmed !== "" && existingNames.some((n) => n.trim() === trimmed);
 
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!trimmed) return;
+
+    const formData = new FormData();
+    formData.set("name", name);
+    formData.set("courtFee", courtFee);
+
+    startTransition(async () => {
+      await addAndCheckInMember(sessionId, formData);
+      setName("");
+      setCourtFee("");
+    });
+  }
+
   return (
-    <form
-      action={addAndCheckInMember.bind(null, sessionId)}
-      className="flex gap-2 flex-wrap items-start"
-    >
+    <form onSubmit={handleSubmit} className="flex gap-2 flex-wrap items-start">
       <div className="flex-1 min-w-[140px]">
         <input
           name="name"
@@ -47,15 +61,18 @@ export default function InlineAddMember({
       <input
         name="courtFee"
         type="number"
+        value={courtFee}
+        onChange={(e) => setCourtFee(e.target.value)}
         placeholder="ค่าสนาม (บาท)"
         className="w-32 px-3 py-2.5 rounded-lg border border-purple-100 bg-purple-50 text-sm"
       />
-      <SubmitButton
-        pendingText="กำลังเพิ่ม..."
-        className="px-4 py-2.5 rounded-lg bg-gradient-to-r from-purple-600 to-purple-500 text-white text-sm font-bold"
+      <button
+        type="submit"
+        disabled={isPending}
+        className="px-4 py-2.5 rounded-lg bg-gradient-to-r from-purple-600 to-purple-500 text-white text-sm font-bold disabled:opacity-60"
       >
-        เพิ่ม + เช็คอิน
-      </SubmitButton>
+        {isPending ? "กำลังเพิ่ม..." : "เพิ่ม + เช็คอิน"}
+      </button>
     </form>
   );
 }

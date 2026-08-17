@@ -8,7 +8,7 @@ import { CourtIcon, ShuttleIcon, TagIcon, PeopleIcon } from "./Icons";
 type Member = { id: string; name: string };
 
 const fontStack =
-  "var(--font-thai), var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+  "'Noto Sans Thai', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
 
 function SubmitGameButton({ isFull, remaining }: { isFull: boolean; remaining: number }) {
   const { pending } = useFormStatus();

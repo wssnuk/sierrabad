@@ -1,20 +1,5 @@
 import type { Metadata } from "next";
-import { Noto_Sans_Thai, Inter } from "next/font/google";
 import "./globals.css";
-
-const notoSansThai = Noto_Sans_Thai({
-  subsets: ["thai", "latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  variable: "--font-thai",
-  display: "swap",
-});
-
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  variable: "--font-inter",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://sierrabad.vercel.app"),
@@ -43,7 +28,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="th" className={`${notoSansThai.variable} ${inter.variable}`}>
+    <html lang="th">
       <body>{children}</body>
     </html>
   );

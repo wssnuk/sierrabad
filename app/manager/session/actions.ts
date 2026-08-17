@@ -300,7 +300,6 @@ export async function updateCheckInFee(checkInId: string, formData: FormData) {
 
 export async function updateActuals(sessionId: string, formData: FormData) {
   const actualCourtFeePaidRaw = formData.get("actualCourtFeePaid");
-  const actualShuttleCountRaw = formData.get("actualShuttleCount");
 
   const editorName = await getEditorName();
 
@@ -311,15 +310,20 @@ export async function updateActuals(sessionId: string, formData: FormData) {
         actualCourtFeePaidRaw === null || actualCourtFeePaidRaw === ""
           ? null
           : Number(actualCourtFeePaidRaw),
-      actualShuttleCount:
-        actualShuttleCountRaw === null || actualShuttleCountRaw === ""
-          ? null
-          : Number(actualShuttleCountRaw),
       lastEditedBy: editorName,
       lastEditedAt: new Date(),
     },
   });
 
+  revalidatePath("/manager/session");
+}
+
+export async function removeCheckIn(checkInId: string) {
+  const checkIn = await prisma.checkIn.delete({ where: { id: checkInId } });
+  await prisma.session.update({
+    where: { id: checkIn.sessionId },
+    data: { lastEditedBy: await getEditorName(), lastEditedAt: new Date() },
+  });
   revalidatePath("/manager/session");
 }
 
@@ -350,9 +354,10 @@ async function buildLineSummary(sessionId: string) {
 
   if (!session) return null;
 
-  const totalShuttles =
-    session.actualShuttleCount ??
-    session.games.reduce((sum, g) => sum + g.shuttleCount, 0);
+  const totalShuttles = session.games.reduce(
+    (sum, g) => sum + g.shuttleCount,
+    0
+  );
   const shuttleCost = totalShuttles * session.shuttlePrice;
   const memberCount = session.checkIns.length;
   const courtFeeCollected = session.checkIns.reduce(

@@ -18,9 +18,25 @@ import { CourtIcon, PeopleIcon, ShuttleIcon } from "./Icons";
 import Footer from "@/components/Footer";
 import LastEditedBadge from "@/components/LastEditedBadge";
 import AutoRefresh from "./AutoRefresh";
+import CheckInChip from "./CheckInChip";
 
 const fontStack =
-  "var(--font-thai), var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+  "'Noto Sans Thai', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+
+const fontLinks = (
+  <>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      rel="preconnect"
+      href="https://fonts.gstatic.com"
+      crossOrigin="anonymous"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+  </>
+);
 
 const cardAccents = [
   "border-l-4 border-purple-300",
@@ -51,10 +67,12 @@ export default async function SessionPage({
 
   if (!session) {
     return (
-      <div
-        className="min-h-screen bg-gradient-to-b from-[#FBF8FF] to-[#F3EAFF] p-6 flex flex-col items-center justify-center"
-        style={{ fontFamily: fontStack }}
-      >
+      <>
+        {fontLinks}
+        <div
+          className="min-h-screen bg-gradient-to-b from-[#FBF8FF] to-[#F3EAFF] p-6 flex flex-col items-center justify-center"
+          style={{ fontFamily: fontStack }}
+        >
         <div className="bg-white rounded-[28px] shadow-2xl p-10 max-w-md w-full">
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-600 to-fuchsia-500 flex items-center justify-center mb-6 shadow-lg shadow-purple-200">
             <ShuttleIcon className="w-8 h-8 text-white" />
@@ -109,15 +127,17 @@ export default async function SessionPage({
           <Footer />
         </div>
       </div>
+      </>
     );
   }
 
   const checkedInIds = new Set(session.checkIns.map((c) => c.memberId));
   const notCheckedIn = allMembers.filter((m) => !checkedInIds.has(m.id));
 
-  const totalShuttles =
-    session.actualShuttleCount ??
-    session.games.reduce((sum, g) => sum + g.shuttleCount, 0);
+  const totalShuttles = session.games.reduce(
+    (sum, g) => sum + g.shuttleCount,
+    0
+  );
   const shuttleCost = totalShuttles * session.shuttlePrice;
   const memberCount = session.checkIns.length;
 
@@ -141,12 +161,14 @@ export default async function SessionPage({
   });
 
   return (
-    <div
-      className="min-h-screen bg-gradient-to-b from-[#FBF8FF] to-[#F3EAFF] p-6"
-      style={{ fontFamily: fontStack }}
-    >
-      <AutoRefresh intervalMs={15000} />
-      <div className="max-w-4xl mx-auto space-y-6">
+    <>
+      {fontLinks}
+      <div
+        className="min-h-screen bg-gradient-to-b from-[#FBF8FF] to-[#F3EAFF] p-6"
+        style={{ fontFamily: fontStack }}
+      >
+        <AutoRefresh intervalMs={15000} />
+        <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <EditableSessionName
             sessionId={session.id}
@@ -181,12 +203,12 @@ export default async function SessionPage({
 
           <div className="flex flex-wrap gap-2 mb-4">
             {session.checkIns.map((c) => (
-              <span
+              <CheckInChip
                 key={c.id}
-                className="px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-semibold"
-              >
-                {c.member.name} ({gameCountByMember[c.memberId] || 0} เกมส์)
-              </span>
+                checkInId={c.id}
+                name={c.member.name}
+                gameCount={gameCountByMember[c.memberId] || 0}
+              />
             ))}
             {memberCount === 0 && (
               <p className="text-sm text-gray-400">ยังไม่มีใครเช็คอิน</p>
@@ -319,7 +341,6 @@ export default async function SessionPage({
         <ActualsForm
           sessionId={session.id}
           actualCourtFeePaid={session.actualCourtFeePaid}
-          actualShuttleCount={session.actualShuttleCount}
           courtFeeCollected={courtFeeCollected}
           totalShuttles={totalShuttles}
           shuttlePrice={session.shuttlePrice}
@@ -330,6 +351,7 @@ export default async function SessionPage({
 
         <Footer />
       </div>
-    </div>
+      </div>
+    </>
   );
 }

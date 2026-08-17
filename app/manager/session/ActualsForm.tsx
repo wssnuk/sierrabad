@@ -11,7 +11,7 @@ function SaveActualsButton() {
     <button
       type="submit"
       disabled={pending}
-      className="sm:col-span-2 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-bold text-sm shadow hover:shadow-md transition-shadow disabled:opacity-60"
+      className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-bold text-sm shadow hover:shadow-md transition-shadow disabled:opacity-60"
     >
       {pending ? "กำลังบันทึก..." : "บันทึกยอดจริง"}
     </button>
@@ -34,14 +34,12 @@ function SendLineButton() {
 export default function ActualsForm({
   sessionId,
   actualCourtFeePaid,
-  actualShuttleCount,
   courtFeeCollected,
   totalShuttles,
   shuttlePrice,
 }: {
   sessionId: string;
   actualCourtFeePaid: number | null;
-  actualShuttleCount: number | null;
   courtFeeCollected: number;
   totalShuttles: number;
   shuttlePrice: number;
@@ -62,11 +60,14 @@ export default function ActualsForm({
         เห็นได้เฉพาะแอดมินและผู้จัดการเท่านั้น — ไม่ถูกส่งไป LINE
       </p>
 
-      <div className="flex justify-between text-sm py-1.5 border-b border-dashed mb-3">
-        <span>
-          ค่าลูกแบด ({totalShuttles} ลูก × ฿{shuttlePrice})
+      <div className="flex items-center justify-between text-sm py-2.5 px-3 bg-fuchsia-50/60 rounded-xl mb-4">
+        <span className="flex items-center gap-1.5 text-fuchsia-700 font-medium">
+          <ShuttleIcon className="w-3.5 h-3.5" />
+          ลูกแบดที่ใช้ทั้งหมด (คำนวณจากแมทช์อัตโนมัติ)
         </span>
-        <span className="font-semibold">฿{shuttleCost}</span>
+        <span className="font-bold text-fuchsia-700">
+          {totalShuttles} ลูก · ฿{shuttleCost}
+        </span>
       </div>
 
       <form
@@ -75,34 +76,19 @@ export default function ActualsForm({
           const v = formData.get("actualCourtFeePaid");
           setSaved(v === null || v === "" ? null : Number(v));
         }}
-        className="grid sm:grid-cols-2 gap-3 mb-4"
+        className="mb-4"
       >
-        <div>
-          <label className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 mb-1.5">
-            <CoinIcon className="w-3.5 h-3.5" />
-            ค่าสนามที่จ่ายจริง (บาท)
-          </label>
-          <input
-            name="actualCourtFeePaid"
-            type="number"
-            defaultValue={actualCourtFeePaid ?? ""}
-            placeholder="เช่น 800"
-            className="w-full px-4 py-3 rounded-xl border border-emerald-100 bg-emerald-50/60 text-base"
-          />
-        </div>
-        <div>
-          <label className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 mb-1.5">
-            <ShuttleIcon className="w-3.5 h-3.5" />
-            จำนวนลูกที่ใช้จริง (ถ้าต่างจากระบบนับ)
-          </label>
-          <input
-            name="actualShuttleCount"
-            type="number"
-            defaultValue={actualShuttleCount ?? ""}
-            placeholder="ไม่บังคับ"
-            className="w-full px-4 py-3 rounded-xl border border-emerald-100 bg-emerald-50/60 text-base"
-          />
-        </div>
+        <label className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 mb-1.5">
+          <CoinIcon className="w-3.5 h-3.5" />
+          ค่าสนามที่จ่ายจริง (บาท)
+        </label>
+        <input
+          name="actualCourtFeePaid"
+          type="number"
+          defaultValue={actualCourtFeePaid ?? ""}
+          placeholder="เช่น 800"
+          className="w-full px-4 py-3 rounded-xl border border-emerald-100 bg-emerald-50/60 text-base mb-3"
+        />
         <SaveActualsButton />
       </form>
 

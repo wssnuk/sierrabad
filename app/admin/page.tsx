@@ -3,9 +3,10 @@ import { runSessionMaintenance } from "../manager/session/actions";
 import TopBar from "@/components/TopBar";
 import Footer from "@/components/Footer";
 import DeleteSessionButton from "./DeleteSessionButton";
+import LastEditedBadge from "@/components/LastEditedBadge";
 
 const fontStack =
-  "var(--font-thai), var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+  "'Noto Sans Thai', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
 
 function StatCard({
   label,
@@ -49,13 +50,24 @@ export default async function AdminDashboard() {
     ]);
 
   return (
-    <div
-      className="min-h-screen bg-gradient-to-b from-[#FBF8FF] to-[#F3EAFF] p-4 sm:p-6"
-      style={{ fontFamily: fontStack }}
-    >
-      <TopBar zone="โซนผู้ดูแลระบบ · Dashboard" />
+    <>
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossOrigin="anonymous"
+      />
+      <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+      />
+      <div
+        className="min-h-screen bg-gradient-to-b from-[#FBF8FF] to-[#F3EAFF] p-4 sm:p-6"
+        style={{ fontFamily: fontStack }}
+      >
+        <TopBar zone="โซนผู้ดูแลระบบ · Dashboard" />
 
-      <div className="max-w-5xl mx-auto">
+        <div className="max-w-5xl mx-auto">
         <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-[#3B0764]">
@@ -143,6 +155,7 @@ export default async function AdminDashboard() {
                   <th className="pb-2 pr-3">สมาชิก</th>
                   <th className="pb-2 pr-3">แมทช์</th>
                   <th className="pb-2 pr-3">สถานะ</th>
+                  <th className="pb-2 pr-3">แก้ไขล่าสุด</th>
                   <th className="pb-2"></th>
                 </tr>
               </thead>
@@ -193,6 +206,12 @@ export default async function AdminDashboard() {
                         {s.status === "OPEN" ? "กำลังจัด" : "ปิดแล้ว"}
                       </span>
                     </td>
+                    <td className="py-2.5 pr-3">
+                      <LastEditedBadge
+                        name={s.lastEditedBy}
+                        at={s.lastEditedAt}
+                      />
+                    </td>
                     <td className="py-2.5 rounded-r-lg pr-2 text-right">
                       <DeleteSessionButton sessionId={s.id} />
                     </td>
@@ -200,7 +219,7 @@ export default async function AdminDashboard() {
                 ))}
                 {recentSessions.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="py-6 text-center text-gray-400">
+                    <td colSpan={7} className="py-6 text-center text-gray-400">
                       ยังไม่มีข้อมูลก๊วนในระบบ
                     </td>
                   </tr>
@@ -219,5 +238,6 @@ export default async function AdminDashboard() {
         <Footer />
       </div>
     </div>
+    </>
   );
 }

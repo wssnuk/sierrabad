@@ -4,7 +4,7 @@ import TopBar from "@/components/TopBar";
 import Footer from "@/components/Footer";
 
 const fontStack =
-  "var(--font-thai), var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+  "'Noto Sans Thai', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
 
 export default async function ManagerPage() {
   const session = await auth();
@@ -15,7 +15,18 @@ export default async function ManagerPage() {
   }
 
   return (
-    <div
+    <>
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossOrigin="anonymous"
+      />
+      <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+      />
+          <div
       className="min-h-screen flex flex-col bg-gradient-to-b from-[#FBF8FF] to-[#F3EAFF] p-4 sm:p-6"
       style={{ fontFamily: fontStack }}
     >
@@ -106,5 +117,6 @@ export default async function ManagerPage() {
         <Footer />
       </div>
     </div>
+    </>
   );
 }
