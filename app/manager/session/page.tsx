@@ -4,7 +4,6 @@ import {
   createSession,
   checkInMember,
   addAndCheckInMember,
-  closeSession,
 } from "./actions";
 import EditableSessionName from "./EditableSessionName";
 import GameAssignForm from "./GameAssignForm";
@@ -12,6 +11,7 @@ import GameCard from "./GameCard";
 import CheckInFeeCell from "./CheckInFeeCell";
 import ActualsForm from "./ActualsForm";
 import SubmitButton from "./SubmitButton";
+import CloseSessionButton from "./CloseSessionButton";
 import { CourtIcon, PeopleIcon, ShuttleIcon } from "./Icons";
 import Footer from "@/components/Footer";
 
@@ -78,12 +78,12 @@ export default async function SessionPage({
                 className="w-full px-4 py-3.5 rounded-xl border border-purple-100 bg-purple-50 text-base"
               />
             </div>
-            <button
-              type="submit"
+            <SubmitButton
+              pendingText="กำลังเปิดก๊วน..."
               className="w-full py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-purple-500 text-white font-bold text-base shadow-lg shadow-purple-200 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all"
             >
               เปิดก๊วน
-            </button>
+            </SubmitButton>
           </form>
           <a
             href="/manager"
@@ -314,14 +314,7 @@ export default async function SessionPage({
         />
 
         {/* Close session — standalone, prominent, at the very bottom */}
-        <form action={closeSession.bind(null, session.id)}>
-          <button
-            type="submit"
-            className="w-full py-5 rounded-2xl bg-gradient-to-r from-rose-600 to-rose-500 text-white font-bold text-lg shadow-xl shadow-rose-200 hover:shadow-2xl hover:-translate-y-0.5 active:translate-y-0 transition-all"
-          >
-            ปิดก๊วนวันนี้
-          </button>
-        </form>
+        <CloseSessionButton sessionId={session.id} />
 
         <Footer />
       </div>

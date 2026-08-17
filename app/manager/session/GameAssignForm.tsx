@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useFormStatus } from "react-dom";
 import { createGame } from "./actions";
 import { CourtIcon, ShuttleIcon, TagIcon, PeopleIcon } from "./Icons";
 
@@ -8,6 +9,19 @@ type Member = { id: string; name: string };
 
 const fontStack =
   "var(--font-thai), var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+
+function SubmitGameButton({ isFull, remaining }: { isFull: boolean; remaining: number }) {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      type="submit"
+      disabled={!isFull || pending}
+      className="w-full py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-purple-500 text-white font-bold text-base shadow-lg shadow-purple-200 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+    >
+      {pending ? "กำลังบันทึก..." : isFull ? "บันทึกเกมส์" : `เลือกอีก ${remaining} คน`}
+    </button>
+  );
+}
 
 export default function GameAssignForm({
   sessionId,
@@ -126,13 +140,7 @@ export default function GameAssignForm({
         </p>
       </div>
 
-      <button
-        type="submit"
-        disabled={!isFull}
-        className="w-full py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-purple-500 text-white font-bold text-base shadow-lg shadow-purple-200 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-      >
-        {isFull ? "บันทึกเกมส์" : `เลือกอีก ${4 - selected.length} คน`}
-      </button>
+      <SubmitGameButton isFull={isFull} remaining={4 - selected.length} />
     </form>
   );
 }

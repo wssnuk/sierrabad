@@ -56,6 +56,10 @@ export default async function HistoryPage() {
               month: "long",
               year: "numeric",
             });
+            const timeLabel = new Date(s.date).toLocaleTimeString("th-TH", {
+              hour: "2-digit",
+              minute: "2-digit",
+            });
 
             return (
               <div
@@ -68,7 +72,7 @@ export default async function HistoryPage() {
                     <h2 className="font-bold text-[#3B0764]">{s.courtName}</h2>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-xs text-gray-400">{dateLabel}</span>
+                    <span className="text-xs text-gray-400">{dateLabel} · {timeLabel} น.</span>
                     <DeleteHistoryButton sessionId={s.id} />
                   </div>
                 </div>

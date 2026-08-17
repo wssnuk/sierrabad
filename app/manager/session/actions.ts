@@ -20,6 +20,20 @@ const sessionInclude = {
   },
 };
 
+async function deleteSessionCascade(sessionId: string) {
+  const games = await prisma.game.findMany({
+    where: { sessionId },
+    select: { id: true },
+  });
+  const gameIds = games.map((g) => g.id);
+  if (gameIds.length > 0) {
+    await prisma.gamePlayer.deleteMany({ where: { gameId: { in: gameIds } } });
+    await prisma.game.deleteMany({ where: { sessionId } });
+  }
+  await prisma.checkIn.deleteMany({ where: { sessionId } });
+  await prisma.session.delete({ where: { id: sessionId } });
+}
+
 // Auto-close any session left OPEN from a previous day so it doesn't
 // linger as a zombie session forever.
 async function closeStaleSessions() {
@@ -30,8 +44,34 @@ async function closeStaleSessions() {
   });
 }
 
+// If accidental double-clicks created multiple empty OPEN sessions for
+// today (e.g. from a slow connection), keep only the one with the most
+// activity and remove the empty duplicates automatically.
+async function dedupeTodaySessions() {
+  const { start, end } = todayRange();
+  const openSessions = await prisma.session.findMany({
+    where: { status: "OPEN", date: { gte: start, lte: end } },
+    include: { checkIns: true, games: true },
+    orderBy: { date: "asc" },
+  });
+  if (openSessions.length <= 1) return;
+
+  const sorted = [...openSessions].sort(
+    (a, b) =>
+      b.checkIns.length + b.games.length - (a.checkIns.length + a.games.length)
+  );
+  const keepId = sorted[0].id;
+
+  for (const s of openSessions) {
+    if (s.id !== keepId) {
+      await deleteSessionCascade(s.id);
+    }
+  }
+}
+
 export async function getSession(sessionId?: string) {
   await closeStaleSessions();
+  await dedupeTodaySessions();
 
   if (sessionId) {
     return prisma.session.findUnique({
@@ -51,6 +91,16 @@ export async function getSession(sessionId?: string) {
 export async function createSession(formData: FormData) {
   const courtName = formData.get("courtName") as string;
   const shuttlePrice = Number(formData.get("shuttlePrice")) || 0;
+
+  // Guard against accidental double-submit creating a duplicate session.
+  const { start, end } = todayRange();
+  const existing = await prisma.session.findFirst({
+    where: { status: "OPEN", date: { gte: start, lte: end } },
+  });
+  if (existing) {
+    revalidatePath("/manager/session");
+    return;
+  }
 
   await prisma.session.create({
     data: { courtName, shuttlePrice, status: "OPEN" },

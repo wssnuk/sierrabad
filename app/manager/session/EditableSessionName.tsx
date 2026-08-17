@@ -1,8 +1,22 @@
 "use client";
 
 import { useState } from "react";
+import { useFormStatus } from "react-dom";
 import { updateSessionSettings } from "./actions";
 import { PencilIcon } from "./Icons";
+
+function SaveButton() {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="px-3 py-2 rounded-lg bg-purple-600 text-white text-xs font-bold disabled:opacity-60"
+    >
+      {pending ? "กำลังบันทึก..." : "บันทึก"}
+    </button>
+  );
+}
 
 export default function EditableSessionName({
   sessionId,
@@ -63,12 +77,7 @@ export default function EditableSessionName({
           className="text-base font-bold text-[#3B0764] px-3 py-1.5 rounded-lg border-2 border-purple-300 bg-white outline-none w-24"
         />
       </div>
-      <button
-        type="submit"
-        className="px-3 py-2 rounded-lg bg-purple-600 text-white text-xs font-bold"
-      >
-        บันทึก
-      </button>
+      <SaveButton />
       <button
         type="button"
         onClick={() => setEditing(false)}

@@ -1,8 +1,35 @@
 "use client";
 
 import { useState } from "react";
+import { useFormStatus } from "react-dom";
 import { updateActuals, sendLineNow } from "./actions";
 import { ScaleIcon, CoinIcon, ShuttleIcon } from "./Icons";
+
+function SaveActualsButton() {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="sm:col-span-2 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-bold text-sm shadow hover:shadow-md transition-shadow disabled:opacity-60"
+    >
+      {pending ? "กำลังบันทึก..." : "บันทึกยอดจริง"}
+    </button>
+  );
+}
+
+function SendLineButton() {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 to-purple-500 text-white font-bold text-sm shadow-lg shadow-purple-200 hover:shadow-xl transition-all disabled:opacity-60"
+    >
+      {pending ? "กำลังส่ง..." : "ส่งสรุปเข้า LINE"}
+    </button>
+  );
+}
 
 export default function ActualsForm({
   sessionId,
@@ -76,12 +103,7 @@ export default function ActualsForm({
             className="w-full px-4 py-3 rounded-xl border border-emerald-100 bg-emerald-50/60 text-base"
           />
         </div>
-        <button
-          type="submit"
-          className="sm:col-span-2 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-bold text-sm shadow hover:shadow-md transition-shadow"
-        >
-          บันทึกยอดจริง
-        </button>
+        <SaveActualsButton />
       </form>
 
       <div className="grid grid-cols-2 gap-3 text-center mb-5">
@@ -118,12 +140,7 @@ export default function ActualsForm({
       </div>
 
       <form action={sendLineNow.bind(null, sessionId)}>
-        <button
-          type="submit"
-          className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 to-purple-500 text-white font-bold text-sm shadow-lg shadow-purple-200 hover:shadow-xl transition-all"
-        >
-          ส่งสรุปเข้า LINE
-        </button>
+        <SendLineButton />
       </form>
     </div>
   );
