@@ -68,3 +68,9 @@ model GamePlayer {
   game     Game   @relation(fields: [gameId], references: [id])
   member   Member @relation(fields: [memberId], references: [id])
 }
+
+model Settings {
+  id               String  @id @default("singleton")
+  telegramBotToken String?
+  telegramChatId   String?
+}

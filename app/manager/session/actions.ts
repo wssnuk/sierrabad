@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { sendLineSummary } from "@/lib/line";
+import { sendTelegramMessage } from "@/lib/telegram";
 import { revalidatePath } from "next/cache";
 
 function todayRange() {
@@ -416,7 +417,10 @@ async function buildLineSummary(sessionId: string) {
 export async function sendLineNow(sessionId: string) {
   const message = await buildLineSummary(sessionId);
   if (message) {
-    await sendLineSummary(message);
+    await Promise.all([
+      sendLineSummary(message),
+      sendTelegramMessage(message),
+    ]);
   }
 }
 

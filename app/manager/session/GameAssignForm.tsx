@@ -10,6 +10,15 @@ type Member = { id: string; name: string };
 const fontStack =
   "'Noto Sans Thai', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
 
+// One distinct color per player slot (1st–4th picked) so it's easy to
+// visually tell who's in which position at a glance.
+const slotColors = [
+  { bg: "bg-gradient-to-r from-purple-600 to-purple-500", shadow: "shadow-purple-200", chip: "bg-purple-500" },
+  { bg: "bg-gradient-to-r from-rose-500 to-pink-500", shadow: "shadow-rose-200", chip: "bg-rose-500" },
+  { bg: "bg-gradient-to-r from-sky-600 to-cyan-500", shadow: "shadow-sky-200", chip: "bg-sky-500" },
+  { bg: "bg-gradient-to-r from-amber-500 to-orange-500", shadow: "shadow-amber-200", chip: "bg-amber-500" },
+];
+
 function SubmitGameButton({ isFull, remaining }: { isFull: boolean; remaining: number }) {
   const { pending } = useFormStatus();
   return (
@@ -105,10 +114,21 @@ export default function GameAssignForm({
           <PeopleIcon className="w-3.5 h-3.5" />
           แตะเลือกผู้เล่นให้ครบ 4 คน ({selected.length}/4)
         </label>
+        <div className="flex flex-wrap gap-1.5 mb-3">
+          {slotColors.map((c, i) => (
+            <span
+              key={i}
+              className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold text-white ${c.chip}`}
+            >
+              คนที่ {i + 1}
+            </span>
+          ))}
+        </div>
         <div className="flex flex-wrap gap-2">
           {members.map((m) => {
             const idx = selected.indexOf(m.id);
             const active = idx !== -1;
+            const color = active ? slotColors[idx] : null;
             return (
               <button
                 type="button"
@@ -117,8 +137,8 @@ export default function GameAssignForm({
                 disabled={!active && selected.length >= 4}
                 className={
                   "px-4 py-3 rounded-xl text-sm font-semibold border-2 transition-all disabled:opacity-40 disabled:cursor-not-allowed " +
-                  (active
-                    ? "bg-gradient-to-r from-purple-600 to-fuchsia-500 border-transparent text-white shadow-md shadow-purple-200"
+                  (active && color
+                    ? `${color.bg} border-transparent text-white shadow-md ${color.shadow}`
                     : "bg-white border-purple-100 text-gray-600 hover:border-purple-300")
                 }
               >

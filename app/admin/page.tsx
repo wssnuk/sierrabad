@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { runSessionMaintenance } from "../manager/session/actions";
+import { signOut } from "@/lib/auth";
 import TopBar from "@/components/TopBar";
 import Footer from "@/components/Footer";
 import DeleteSessionButton from "./DeleteSessionButton";
@@ -79,7 +80,7 @@ export default async function AdminDashboard() {
               มอนิเตอร์การจัดก๊วนและผู้จัดการทั้งหมดในระบบ
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <a
               href="/admin/managers"
               className="px-4 py-2.5 rounded-xl bg-purple-900 text-white text-sm font-bold shadow hover:shadow-md transition-shadow"
@@ -87,11 +88,27 @@ export default async function AdminDashboard() {
               จัดการบัญชีผู้จัดการ
             </a>
             <a
+              href="/admin/settings"
+              className="px-4 py-2.5 rounded-xl bg-white border border-purple-200 text-purple-700 text-sm font-bold hover:bg-purple-50 transition-colors"
+            >
+              ตั้งค่าระบบ
+            </a>
+            <a
               href="/manager/session"
               className="px-4 py-2.5 rounded-xl bg-white border border-purple-200 text-purple-700 text-sm font-bold hover:bg-purple-50 transition-colors"
             >
               โหมดผู้จัดการก๊วน
             </a>
+            <form
+              action={async () => {
+                "use server";
+                await signOut({ redirectTo: "/login" });
+              }}
+            >
+              <button className="px-4 py-2.5 rounded-xl bg-gray-100 text-gray-600 text-sm font-bold hover:bg-gray-200 transition-colors">
+                ออกจากระบบ
+              </button>
+            </form>
           </div>
         </div>
 
