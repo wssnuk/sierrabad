@@ -45,6 +45,8 @@ model CheckIn {
   courtFeeOverride Int?
   session          Session  @relation(fields: [sessionId], references: [id])
   member           Member   @relation(fields: [memberId], references: [id])
+
+  @@unique([sessionId, memberId])
 }
 
 model Game {

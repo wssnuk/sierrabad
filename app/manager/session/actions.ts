@@ -145,21 +145,19 @@ export async function updateSessionSettings(
 }
 
 export async function checkInMember(sessionId: string, memberId: string) {
-  const [existing, editorName] = await Promise.all([
-    prisma.checkIn.findFirst({ where: { sessionId, memberId } }),
-    getEditorName(),
-  ]);
+  const editorName = await getEditorName();
 
-  const ops: Promise<unknown>[] = [
+  await Promise.all([
+    prisma.checkIn.upsert({
+      where: { sessionId_memberId: { sessionId, memberId } },
+      update: {},
+      create: { sessionId, memberId },
+    }),
     prisma.session.update({
       where: { id: sessionId },
       data: { lastEditedBy: editorName, lastEditedAt: new Date() },
     }),
-  ];
-  if (!existing) {
-    ops.push(prisma.checkIn.create({ data: { sessionId, memberId } }));
-  }
-  await Promise.all(ops);
+  ]);
 
   revalidatePath("/manager/session");
 }
@@ -374,6 +372,7 @@ async function buildLineSummary(sessionId: string) {
     day: "numeric",
     month: "long",
     year: "numeric",
+    timeZone: "Asia/Bangkok",
   });
 
   const memberLines = session.checkIns

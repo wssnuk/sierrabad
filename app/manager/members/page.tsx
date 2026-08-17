@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { addMember } from "./actions";
 import MemberRow from "./MemberRow";
+import AddMemberForm from "./AddMemberForm";
 import Footer from "@/components/Footer";
 
 const fontStack =
@@ -28,26 +28,7 @@ export default async function MembersPage() {
 
         <div className="bg-white rounded-2xl shadow-md p-5 sm:p-6 mb-6">
           <h2 className="font-bold text-[#3B0764] mb-4">+ เพิ่มสมาชิกใหม่</h2>
-          <form action={addMember} className="flex gap-3 flex-wrap">
-            <input
-              name="name"
-              placeholder="ชื่อ-นามสกุล / ชื่อเล่น"
-              required
-              className="flex-1 min-w-[180px] px-4 py-2.5 rounded-xl border border-purple-100 bg-purple-50 text-sm"
-            />
-            <input
-              name="courtFee"
-              type="number"
-              placeholder="ค่าสนามต่อครั้ง (บาท)"
-              className="w-full sm:w-48 px-4 py-2.5 rounded-xl border border-purple-100 bg-purple-50 text-sm"
-            />
-            <button
-              type="submit"
-              className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-purple-500 text-white font-bold text-sm shadow hover:shadow-md transition-shadow"
-            >
-              บันทึก
-            </button>
-          </form>
+          <AddMemberForm existingNames={members.map((m) => m.name)} />
         </div>
 
         <div className="bg-white rounded-2xl shadow-md p-5 sm:p-6">

@@ -61,10 +61,12 @@ export default async function HistoryPage() {
               day: "numeric",
               month: "long",
               year: "numeric",
+              timeZone: "Asia/Bangkok",
             });
             const timeLabel = new Date(s.date).toLocaleTimeString("th-TH", {
               hour: "2-digit",
               minute: "2-digit",
+              timeZone: "Asia/Bangkok",
             });
 
             return (

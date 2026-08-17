@@ -12,6 +12,7 @@ export default function LastEditedBadge({
     month: "short",
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: "Asia/Bangkok",
   });
 
   return (

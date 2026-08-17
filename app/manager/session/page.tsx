@@ -12,6 +12,7 @@ import GameCard from "./GameCard";
 import CheckInFeeCell from "./CheckInFeeCell";
 import ActualsForm from "./ActualsForm";
 import SubmitButton from "./SubmitButton";
+import InlineAddMember from "./InlineAddMember";
 import CloseSessionButton from "./CloseSessionButton";
 import { CourtIcon, PeopleIcon, ShuttleIcon } from "./Icons";
 import Footer from "@/components/Footer";
@@ -28,7 +29,9 @@ const cardAccents = [
 ];
 
 function formatShuttles(n: number) {
-  return Number.isInteger(n) ? String(n) : n.toFixed(1);
+  // Round the displayed ball-count to a whole number for readability
+  // (e.g. "1 ลูก" instead of "0.3 ลูก") — the money value stays exact.
+  return String(Math.round(n));
 }
 
 export default async function SessionPage({
@@ -209,29 +212,10 @@ export default async function SessionPage({
             <p className="text-xs font-bold text-gray-500 mb-2">
               สมาชิกใหม่ที่มาวันนี้ (ยังไม่เคยลงทะเบียน)
             </p>
-            <form
-              action={addAndCheckInMember.bind(null, session.id)}
-              className="flex gap-2 flex-wrap"
-            >
-              <input
-                name="name"
-                placeholder="ชื่อ-นามสกุล / ชื่อเล่น"
-                required
-                className="flex-1 min-w-[140px] px-3 py-2.5 rounded-lg border border-purple-100 bg-purple-50 text-sm"
-              />
-              <input
-                name="courtFee"
-                type="number"
-                placeholder="ค่าสนาม (บาท)"
-                className="w-32 px-3 py-2.5 rounded-lg border border-purple-100 bg-purple-50 text-sm"
-              />
-              <SubmitButton
-                pendingText="กำลังเพิ่ม..."
-                className="px-4 py-2.5 rounded-lg bg-gradient-to-r from-purple-600 to-purple-500 text-white text-sm font-bold"
-              >
-                เพิ่ม + เช็คอิน
-              </SubmitButton>
-            </form>
+            <InlineAddMember
+              sessionId={session.id}
+              existingNames={allMembers.map((m) => m.name)}
+            />
           </div>
         </div>
 
