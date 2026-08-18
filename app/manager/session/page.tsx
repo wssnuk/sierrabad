@@ -283,6 +283,7 @@ export default async function SessionPage({
           </h2>
           <p className="text-xs text-gray-500 mb-4">
             ค่าลูกคิดตามจำนวนแมทช์ที่แต่ละคนลงเล่นจริง ไม่ได้หารเท่ากันทุกคน
+            (1 ขีด = ส่วนแบ่งค่าลูกที่คิดจากแมทช์ที่ลงเล่น ไม่ใช่จำนวนลูกทั้งลูก)
           </p>
           <div className="overflow-x-auto -mx-2 px-2">
             <table className="w-full text-sm min-w-[560px]">
@@ -291,7 +292,7 @@ export default async function SessionPage({
                   <th className="py-3 pr-3 pl-3 rounded-l-xl">ชื่อ</th>
                   <th className="py-3 pr-3">เล่นไปแล้ว</th>
                   <th className="py-3 pr-3">ค่าสนาม (แก้ไขได้)</th>
-                  <th className="py-3 pr-3">ลูกที่ใช้ (ค่าลูก)</th>
+                  <th className="py-3 pr-3">ขีดที่ใช้ (ค่าลูก)</th>
                   <th className="py-3 pr-3 rounded-r-xl">รวมที่ต้องจ่าย</th>
                 </tr>
               </thead>
@@ -317,7 +318,7 @@ export default async function SessionPage({
                         <CheckInFeeCell checkInId={c.id} fee={fee} />
                       </td>
                       <td className="py-2.5 pr-3 text-gray-600">
-                        {formatShuttles(shuttlesUsed)} ลูก (฿{memberShuttleCost})
+                        {formatShuttles(shuttlesUsed)} ขีด (฿{memberShuttleCost})
                       </td>
                       <td className="py-2.5 font-bold text-purple-700 rounded-r-lg">
                         ฿{fee + memberShuttleCost}

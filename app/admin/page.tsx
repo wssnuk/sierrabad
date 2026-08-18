@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { runSessionMaintenance } from "../manager/session/actions";
+import { runGlobalMaintenance } from "../manager/session/actions";
 import { signOut } from "@/lib/auth";
 import TopBar from "@/components/TopBar";
 import Footer from "@/components/Footer";
@@ -35,7 +35,7 @@ function StatCard({
 }
 
 export default async function AdminDashboard() {
-  await runSessionMaintenance();
+  await runGlobalMaintenance();
 
   const [managersCount, membersCount, totalSessions, closedSessions, todayOpenSession, recentSessions] =
     await Promise.all([

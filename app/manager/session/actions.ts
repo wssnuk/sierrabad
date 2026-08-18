@@ -41,24 +41,37 @@ async function deleteSessionCascade(sessionId: string) {
   await prisma.session.delete({ where: { id: sessionId } });
 }
 
-// Fast maintenance: closes stale sessions, and only does the heavier
-// duplicate-detection work if a quick count shows there's actually more
-// than one OPEN session today (the common case is exactly 1 or 0).
-export async function runSessionMaintenance() {
-  const { start, end } = todayRange();
-
+// Closes any session left OPEN from a previous day, regardless of owner —
+// this is safe to run globally since an abandoned session should always
+// be closed no matter whose it was.
+export async function runGlobalMaintenance() {
+  const { start } = todayRange();
   await prisma.session.updateMany({
     where: { status: "OPEN", date: { lt: start } },
     data: { status: "CLOSED" },
   });
+}
 
+// Duplicate-detection is scoped to a single manager's own sessions —
+// two different managers legitimately having separate OPEN sessions today
+// is normal now, not a duplicate.
+async function dedupeForOwner(ownerName: string) {
+  const { start, end } = todayRange();
   const openCount = await prisma.session.count({
-    where: { status: "OPEN", date: { gte: start, lte: end } },
+    where: {
+      status: "OPEN",
+      date: { gte: start, lte: end },
+      createdBy: ownerName,
+    },
   });
   if (openCount <= 1) return;
 
   const openSessions = await prisma.session.findMany({
-    where: { status: "OPEN", date: { gte: start, lte: end } },
+    where: {
+      status: "OPEN",
+      date: { gte: start, lte: end },
+      createdBy: ownerName,
+    },
     include: { checkIns: true, games: true },
     orderBy: { date: "asc" },
   });
@@ -76,8 +89,14 @@ export async function runSessionMaintenance() {
   }
 }
 
+// With no id: returns the CURRENT manager's own open session for today
+// only — never another manager's. Admins get the same private view here;
+// they see everyone else's sessions only through the admin dashboard,
+// which passes an explicit id.
+// With an id: returns that specific session regardless of owner (used by
+// admin dashboard links and by a manager returning to their own session).
 export async function getSession(sessionId?: string) {
-  await runSessionMaintenance();
+  await runGlobalMaintenance();
 
   if (sessionId) {
     return prisma.session.findUnique({
@@ -86,9 +105,16 @@ export async function getSession(sessionId?: string) {
     });
   }
 
+  const ownerName = await getEditorName();
+  await dedupeForOwner(ownerName);
+
   const { start, end } = todayRange();
   return prisma.session.findFirst({
-    where: { date: { gte: start, lte: end }, status: "OPEN" },
+    where: {
+      date: { gte: start, lte: end },
+      status: "OPEN",
+      createdBy: ownerName,
+    },
     include: sessionInclude,
     orderBy: { date: "desc" },
   });
@@ -99,12 +125,14 @@ export async function createSession(formData: FormData) {
   const shuttlePrice = Number(formData.get("shuttlePrice")) || 0;
 
   const { start, end } = todayRange();
-  const [existing, editorName] = await Promise.all([
-    prisma.session.findFirst({
-      where: { status: "OPEN", date: { gte: start, lte: end } },
-    }),
-    getEditorName(),
-  ]);
+  const editorName = await getEditorName();
+  const existing = await prisma.session.findFirst({
+    where: {
+      status: "OPEN",
+      date: { gte: start, lte: end },
+      createdBy: editorName,
+    },
+  });
   if (existing) {
     revalidatePath("/manager/session");
     revalidatePath("/admin");
@@ -116,6 +144,7 @@ export async function createSession(formData: FormData) {
       courtName,
       shuttlePrice,
       status: "OPEN",
+      createdBy: editorName,
       lastEditedBy: editorName,
       lastEditedAt: new Date(),
     },
@@ -399,7 +428,7 @@ async function buildLineSummary(sessionId: string) {
       const shuttles = shuttleUsage[c.memberId] || 0;
       const shuttleCostForMember = Math.round(shuttles * session.shuttlePrice);
       const total = fee + shuttleCostForMember;
-      return `• ${c.member.name} — ${games} แมทช์ · ${shuttles} ลูก · รวม ฿${total}`;
+      return `• ${c.member.name} — ${games} แมทช์ · ${shuttles} ขีด · รวม ฿${total}`;
     })
     .join("\n");
 
