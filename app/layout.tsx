@@ -1,5 +1,10 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
+
+// Reinforces the Vercel function region alongside vercel.json, so pages
+// run physically close to the Supabase database (ap-south-1 / Mumbai)
+// for lower latency on every request.
+export const preferredRegion = "bom1";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://sierrabad.vercel.app"),
@@ -20,6 +25,15 @@ export const metadata: Metadata = {
     locale: "th_TH",
     type: "website",
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "SierraBad",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#7C3AED",
 };
 
 export default function RootLayout({
