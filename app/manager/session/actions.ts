@@ -427,8 +427,9 @@ async function buildLineSummary(sessionId: string) {
       const games = gameCountByMember[c.memberId] || 0;
       const shuttles = shuttleUsage[c.memberId] || 0;
       const shuttleCostForMember = Math.round(shuttles * session.shuttlePrice);
+      const khid = Math.round(shuttles * 4);
       const total = fee + shuttleCostForMember;
-      return `• ${c.member.name} — ${games} แมทช์ · ${shuttles} ขีด · รวม ฿${total}`;
+      return `• ${c.member.name} — ${games} แมทช์ · ${khid} ขีด · รวม ฿${total}`;
     })
     .join("\n");
 

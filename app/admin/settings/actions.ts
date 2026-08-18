@@ -63,3 +63,53 @@ export async function testTelegramMessage() {
     "🏸 ทดสอบการเชื่อมต่อ Telegram จากระบบ SierraBad สำเร็จแล้ว!"
   );
 }
+
+export type FetchChatIdResult = { chatId?: string; error?: string };
+
+// Calls Telegram's getUpdates API to find the most recent chat that has
+// messaged the bot, so the admin doesn't have to manually open a URL and
+// read raw JSON to find their Chat ID.
+export async function fetchLatestChatId(
+  token: string
+): Promise<FetchChatIdResult> {
+  const trimmed = token?.trim();
+  if (!trimmed) {
+    return { error: "กรุณากรอก Bot Token ก่อน" };
+  }
+
+  try {
+    const res = await fetch(
+      `https://api.telegram.org/bot${trimmed}/getUpdates`
+    );
+    const data = await res.json();
+
+    if (!data.ok) {
+      return { error: "Token ไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง" };
+    }
+
+    const updates = data.result as Array<{
+      message?: { chat?: { id: number } };
+      channel_post?: { chat?: { id: number } };
+    }>;
+
+    if (!updates || updates.length === 0) {
+      return {
+        error:
+          "ยังไม่พบข้อความ กรุณาส่งข้อความหาบอทในแชทหรือกลุ่มที่ต้องการก่อน 1 ครั้ง แล้วกดปุ่มนี้อีกที",
+      };
+    }
+
+    const last = updates[updates.length - 1];
+    const chatId = last.message?.chat?.id ?? last.channel_post?.chat?.id;
+
+    if (!chatId) {
+      return {
+        error: "ไม่พบ Chat ID กรุณาลองส่งข้อความใหม่แล้วกดปุ่มนี้อีกครั้ง",
+      };
+    }
+
+    return { chatId: String(chatId) };
+  } catch {
+    return { error: "เชื่อมต่อ Telegram ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง" };
+  }
+}

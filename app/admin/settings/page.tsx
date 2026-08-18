@@ -2,7 +2,8 @@ import TopBar from "@/components/TopBar";
 import Footer from "@/components/Footer";
 import ChangePasswordForm from "./ChangePasswordForm";
 import TestTelegramButton from "./TestTelegramButton";
-import { getTelegramSettingsForForm, updateTelegramSettings } from "./actions";
+import TelegramSettingsForm from "./TelegramSettingsForm";
+import { getTelegramSettingsForForm } from "./actions";
 
 const fontStack =
   "'Noto Sans Thai', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
@@ -58,7 +59,7 @@ export default async function AdminSettingsPage() {
             </p>
 
             <div className="bg-sky-50/60 border border-sky-100 rounded-xl px-4 py-3 mb-4 text-xs text-sky-800 leading-relaxed space-y-1.5">
-              <p className="font-bold">วิธีตั้งค่า (ทำครั้งเดียว ใช้เวลา ~2 นาที):</p>
+              <p className="font-bold">วิธีตั้งค่า (ทำครั้งเดียว ใช้เวลา ~1 นาที):</p>
               <p>
                 1. เปิด Telegram แชทหา{" "}
                 <span className="font-semibold">@BotFather</span> พิมพ์{" "}
@@ -74,46 +75,15 @@ export default async function AdminSettingsPage() {
                 อะไรก็ได้ในนั้น 1 ครั้ง
               </p>
               <p>
-                4. เปิดลิงก์นี้ในเบราว์เซอร์ (แทนที่ YOUR_TOKEN ด้วย Token
-                จริง):{" "}
-                <span className="font-mono bg-white px-1 rounded break-all">
-                  https://api.telegram.org/botYOUR_TOKEN/getUpdates
-                </span>{" "}
-                แล้วมองหาตัวเลข &quot;chat&quot;:&quot;id&quot;: ตัวนั้นคือ
-                Chat ID
+                4. กดปุ่ม &quot;ดึง Chat ID อัตโนมัติ&quot; ด้านล่าง — ระบบจะหา
+                Chat ID ให้เองโดยไม่ต้องเปิดลิงก์หรืออ่านโค้ดเอง
               </p>
             </div>
 
-            <form action={updateTelegramSettings} className="space-y-3 mb-4">
-              <div>
-                <label className="block text-xs font-bold text-sky-700 mb-1.5">
-                  Bot Token
-                </label>
-                <input
-                  name="telegramBotToken"
-                  defaultValue={settings?.telegramBotToken ?? ""}
-                  placeholder="เช่น 123456789:AAExxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                  className="w-full px-4 py-2.5 rounded-xl border border-sky-100 bg-sky-50/60 text-sm font-mono"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-sky-700 mb-1.5">
-                  Chat ID
-                </label>
-                <input
-                  name="telegramChatId"
-                  defaultValue={settings?.telegramChatId ?? ""}
-                  placeholder="เช่น -1001234567890"
-                  className="w-full px-4 py-2.5 rounded-xl border border-sky-100 bg-sky-50/60 text-sm font-mono"
-                />
-              </div>
-              <button
-                type="submit"
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-sky-600 to-sky-500 text-white font-bold text-sm shadow hover:shadow-md transition-shadow"
-              >
-                บันทึกการตั้งค่า
-              </button>
-            </form>
+            <TelegramSettingsForm
+              initialToken={settings?.telegramBotToken ?? ""}
+              initialChatId={settings?.telegramChatId ?? ""}
+            />
 
             <TestTelegramButton />
           </div>

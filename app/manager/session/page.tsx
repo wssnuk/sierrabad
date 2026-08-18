@@ -45,12 +45,6 @@ const cardAccents = [
   "border-l-4 border-violet-300",
 ];
 
-function formatShuttles(n: number) {
-  // Round the displayed ball-count to a whole number for readability
-  // (e.g. "1 ลูก" instead of "0.3 ลูก") — the money value stays exact.
-  return String(Math.round(n));
-}
-
 export default async function SessionPage({
   searchParams,
 }: {
@@ -283,7 +277,7 @@ export default async function SessionPage({
           </h2>
           <p className="text-xs text-gray-500 mb-4">
             ค่าลูกคิดตามจำนวนแมทช์ที่แต่ละคนลงเล่นจริง ไม่ได้หารเท่ากันทุกคน
-            (1 ขีด = ส่วนแบ่งค่าลูกที่คิดจากแมทช์ที่ลงเล่น ไม่ใช่จำนวนลูกทั้งลูก)
+            (1 ขีด = ค่าลูกที่คิดจากแมทช์ที่ลงเล่นจริง หารเท่ากัน 4 คนต่อแมทช์)
           </p>
           <div className="overflow-x-auto -mx-2 px-2">
             <table className="w-full text-sm min-w-[560px]">
@@ -302,6 +296,11 @@ export default async function SessionPage({
                   const memberShuttleCost = Math.round(
                     shuttlesUsed * session.shuttlePrice
                   );
+                  // 1 ขีด = 1 unit of shuttleCount from a match this member
+                  // played (i.e. the sum of shuttleCount across their
+                  // matches — exact, no rounding needed since it's just
+                  // the ÷4 and ×4 cancelling out).
+                  const khid = Math.round(shuttlesUsed * 4);
                   const fee = c.courtFeeOverride ?? c.member.courtFee;
                   return (
                     <tr
@@ -318,7 +317,7 @@ export default async function SessionPage({
                         <CheckInFeeCell checkInId={c.id} fee={fee} />
                       </td>
                       <td className="py-2.5 pr-3 text-gray-600">
-                        {formatShuttles(shuttlesUsed)} ขีด (฿{memberShuttleCost})
+                        {khid} ขีด (฿{memberShuttleCost})
                       </td>
                       <td className="py-2.5 font-bold text-purple-700 rounded-r-lg">
                         ฿{fee + memberShuttleCost}
