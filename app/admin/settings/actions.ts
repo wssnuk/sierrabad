@@ -3,6 +3,7 @@
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { sendTelegramMessage } from "@/lib/telegram";
+import { sendTestEmail as sendTestEmailLib } from "@/lib/email";
 import { revalidatePath } from "next/cache";
 
 export type ChangePasswordState = { error?: string; success?: boolean };
@@ -112,4 +113,26 @@ export async function fetchLatestChatId(
   } catch {
     return { error: "เชื่อมต่อ Telegram ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง" };
   }
+}
+
+export async function getEmailSettingsForForm() {
+  return prisma.settings.findUnique({ where: { id: "singleton" } });
+}
+
+export async function updateEmailSettings(formData: FormData) {
+  const resendApiKey = (formData.get("resendApiKey") as string)?.trim() || null;
+  const notificationEmail =
+    (formData.get("notificationEmail") as string)?.trim() || null;
+
+  await prisma.settings.upsert({
+    where: { id: "singleton" },
+    update: { resendApiKey, notificationEmail },
+    create: { id: "singleton", resendApiKey, notificationEmail },
+  });
+
+  revalidatePath("/admin/settings");
+}
+
+export async function testEmailAction() {
+  return sendTestEmailLib();
 }

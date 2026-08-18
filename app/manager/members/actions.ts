@@ -27,3 +27,16 @@ export async function updateMember(memberId: string, formData: FormData) {
 
   revalidatePath("/manager/members");
 }
+
+// Removes a member entirely, including their check-ins and game
+// participation across every session (past and present). Used both from
+// the Members management page and directly from the session page, so
+// deleting a duplicate or mistaken entry from either place stays in sync.
+export async function deleteMember(memberId: string) {
+  await prisma.gamePlayer.deleteMany({ where: { memberId } });
+  await prisma.checkIn.deleteMany({ where: { memberId } });
+  await prisma.member.delete({ where: { id: memberId } });
+
+  revalidatePath("/manager/members");
+  revalidatePath("/manager/session");
+}

@@ -3,7 +3,8 @@ import Footer from "@/components/Footer";
 import ChangePasswordForm from "./ChangePasswordForm";
 import TestTelegramButton from "./TestTelegramButton";
 import TelegramSettingsForm from "./TelegramSettingsForm";
-import { getTelegramSettingsForForm } from "./actions";
+import TestEmailButton from "./TestEmailButton";
+import { getTelegramSettingsForForm, updateEmailSettings } from "./actions";
 
 const fontStack =
   "'Noto Sans Thai', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
@@ -86,6 +87,74 @@ export default async function AdminSettingsPage() {
             />
 
             <TestTelegramButton />
+          </div>
+
+          {/* Email report on close */}
+          <div className="bg-white rounded-2xl shadow-md p-6">
+            <h2 className="flex items-center gap-2 font-bold text-[#3B0764] mb-1">
+              <svg viewBox="0 0 24 24" className="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <rect x="3" y="5" width="18" height="14" rx="2" />
+                <path d="m3 7 9 6 9-6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              รายงานสรุปทางอีเมล
+            </h2>
+            <p className="text-xs text-gray-500 mb-4">
+              เมื่อตั้งค่าแล้ว ระบบจะส่งรายงานสรุปแบบละเอียด (รายชื่อ แมทช์
+              ใครเจอใคร เบอร์ลูก และค่าใช้จ่ายแต่ละคน) เข้าอีเมลนี้อัตโนมัติ
+              ทุกครั้งที่มีการปิดก๊วน
+            </p>
+
+            <div className="bg-emerald-50/60 border border-emerald-100 rounded-xl px-4 py-3 mb-4 text-xs text-emerald-800 leading-relaxed space-y-1.5">
+              <p className="font-bold">วิธีตั้งค่า (ทำครั้งเดียว ใช้เวลา ~2 นาที):</p>
+              <p>
+                1. สมัครบัญชีฟรีที่{" "}
+                <span className="font-semibold">resend.com</span> ด้วยอีเมลที่
+                ต้องการรับรายงาน
+              </p>
+              <p>
+                2. ไปที่เมนู &quot;API Keys&quot; แล้วกด &quot;Create API
+                Key&quot; คัดลอก Key มาใส่ด้านล่าง
+              </p>
+              <p>
+                3. ใส่อีเมลเดียวกับที่ใช้สมัคร Resend ในช่อง
+                &quot;อีเมลรับรายงาน&quot; (บัญชีฟรีจะส่งได้เฉพาะอีเมลนี้
+                เท่านั้น จนกว่าจะยืนยันโดเมนของตัวเอง)
+              </p>
+            </div>
+
+            <form action={updateEmailSettings} className="space-y-3 mb-4">
+              <div>
+                <label className="block text-xs font-bold text-emerald-700 mb-1.5">
+                  Resend API Key
+                </label>
+                <input
+                  name="resendApiKey"
+                  defaultValue={settings?.resendApiKey ?? ""}
+                  placeholder="re_xxxxxxxxxxxxxxxxxxxxxxxx"
+                  className="w-full px-4 py-2.5 rounded-xl border border-emerald-100 bg-emerald-50/60 text-sm font-mono"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-emerald-700 mb-1.5">
+                  อีเมลรับรายงาน
+                </label>
+                <input
+                  name="notificationEmail"
+                  type="email"
+                  defaultValue={settings?.notificationEmail ?? ""}
+                  placeholder="you@example.com"
+                  className="w-full px-4 py-2.5 rounded-xl border border-emerald-100 bg-emerald-50/60 text-sm"
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-bold text-sm shadow hover:shadow-md transition-shadow"
+              >
+                บันทึกการตั้งค่า
+              </button>
+            </form>
+
+            <TestEmailButton />
           </div>
         </div>
 

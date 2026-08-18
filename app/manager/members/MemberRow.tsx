@@ -1,12 +1,24 @@
 "use client";
 
 import { useState } from "react";
-import { updateMember } from "./actions";
+import { updateMember, deleteMember } from "./actions";
 
 type Member = { id: string; name: string; courtFee: number };
 
 export default function MemberRow({ member }: { member: Member }) {
   const [editing, setEditing] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  async function handleDelete() {
+    if (
+      !confirm(
+        `ต้องการลบสมาชิก "${member.name}" ออกจากระบบถาวรใช่หรือไม่?\nจะลบออกจากประวัติการเช็คอินและเกมส์ทุกที่ด้วย กู้คืนไม่ได้`
+      )
+    )
+      return;
+    setDeleting(true);
+    await deleteMember(member.id);
+  }
 
   if (editing) {
     return (
@@ -54,16 +66,25 @@ export default function MemberRow({ member }: { member: Member }) {
     <tr className="border-b border-dashed">
       <td className="py-2.5">{member.name}</td>
       <td className="py-2.5">
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center justify-between gap-3">
           <span className="font-semibold text-purple-700">
             ฿{member.courtFee}
           </span>
-          <button
-            onClick={() => setEditing(true)}
-            className="text-xs text-purple-500 font-semibold hover:text-purple-700 transition-colors"
-          >
-            แก้ไข
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setEditing(true)}
+              className="text-xs text-purple-500 font-semibold hover:text-purple-700 transition-colors"
+            >
+              แก้ไข
+            </button>
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="text-xs text-red-400 font-semibold hover:text-red-600 transition-colors disabled:opacity-50"
+            >
+              {deleting ? "กำลังลบ..." : "ลบ"}
+            </button>
+          </div>
         </div>
       </td>
     </tr>

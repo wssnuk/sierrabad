@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { sendLineSummary } from "@/lib/line";
 import { sendTelegramMessage } from "@/lib/telegram";
+import { sendSessionSummaryEmail } from "@/lib/email";
 import { revalidatePath } from "next/cache";
 
 function todayRange() {
@@ -465,6 +466,15 @@ export async function closeSession(sessionId: string) {
       lastEditedAt: new Date(),
     },
   });
+
+  // Auto-email the summary report. Never let an email failure block the
+  // close-session flow — the session is already closed at this point.
+  try {
+    await sendSessionSummaryEmail(sessionId);
+  } catch {
+    // ignore — email is optional
+  }
+
   revalidatePath("/manager/session");
   revalidatePath("/manager");
   revalidatePath("/manager/history");

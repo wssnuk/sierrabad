@@ -71,7 +71,9 @@ model GamePlayer {
 }
 
 model Settings {
-  id               String  @id @default("singleton")
-  telegramBotToken String?
-  telegramChatId   String?
+  id                String  @id @default("singleton")
+  telegramBotToken  String?
+  telegramChatId    String?
+  resendApiKey      String?
+  notificationEmail String?
 }

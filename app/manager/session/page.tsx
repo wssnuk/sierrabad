@@ -3,7 +3,6 @@ import { auth } from "@/lib/auth";
 import {
   getSession,
   createSession,
-  checkInMember,
   addAndCheckInMember,
 } from "./actions";
 import EditableSessionName from "./EditableSessionName";
@@ -19,6 +18,7 @@ import Footer from "@/components/Footer";
 import LastEditedBadge from "@/components/LastEditedBadge";
 import AutoRefresh from "./AutoRefresh";
 import CheckInChip from "./CheckInChip";
+import NotCheckedInChip from "./NotCheckedInChip";
 
 const fontStack =
   "'Noto Sans Thai', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
@@ -211,17 +211,12 @@ export default async function SessionPage({
           {notCheckedIn.length > 0 && (
             <div className="flex flex-wrap gap-2 pt-4 border-t border-dashed mb-4">
               {notCheckedIn.map((m) => (
-                <form
+                <NotCheckedInChip
                   key={m.id}
-                  action={checkInMember.bind(null, session.id, m.id)}
-                >
-                  <SubmitButton
-                    pendingText="กำลังเช็คอิน..."
-                    className="px-3 py-1.5 rounded-lg border border-purple-200 text-purple-600 text-xs font-semibold hover:bg-purple-50 transition-colors"
-                  >
-                    + {m.name}
-                  </SubmitButton>
-                </form>
+                  sessionId={session.id}
+                  memberId={m.id}
+                  name={m.name}
+                />
               ))}
             </div>
           )}
