@@ -193,15 +193,25 @@ export async function sendSessionSummaryEmail(sessionId: string) {
 
   try {
     const resend = new Resend(settings.resendApiKey);
-    await resend.emails.send({
+    const result = await resend.emails.send({
       from: "SierraBad <onboarding@resend.dev>",
       to: settings.notificationEmail,
       subject: `🏸 สรุปก๊วน ${session.courtName} — ${dateLabel}`,
       html: buildSessionReportHtml(session),
     });
-  } catch {
+    // Resend's SDK resolves (doesn't throw) on API-level rejections — it
+    // returns { error } instead. Must check this explicitly or failures
+    // go completely unnoticed.
+    if (result.error) {
+      console.error(
+        "[email] Resend rejected the session summary:",
+        result.error
+      );
+    }
+  } catch (err) {
     // Email is a secondary/optional channel — a failure here should never
-    // block the close-session flow itself.
+    // block the close-session flow itself, but we still want it logged.
+    console.error("[email] Failed to send session summary email:", err);
   }
 }
 

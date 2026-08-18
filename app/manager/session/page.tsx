@@ -19,6 +19,7 @@ import LastEditedBadge from "@/components/LastEditedBadge";
 import AutoRefresh from "./AutoRefresh";
 import CheckInChip from "./CheckInChip";
 import NotCheckedInChip from "./NotCheckedInChip";
+import ClosedSessionView from "./ClosedSessionView";
 
 const fontStack =
   "'Noto Sans Thai', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
@@ -58,6 +59,15 @@ export default async function SessionPage({
   ]);
   const role = (authSession?.user as { role?: string } | undefined)?.role;
   const isAdmin = role === "ADMIN";
+
+  if (session && session.status === "CLOSED") {
+    return (
+      <ClosedSessionView
+        session={session}
+        backHref={isAdmin ? "/admin" : "/manager/history"}
+      />
+    );
+  }
 
   if (!session) {
     return (

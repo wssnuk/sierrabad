@@ -182,16 +182,12 @@ export default async function AdminDashboard() {
                 {recentSessions.map((s, i) => (
                   <tr key={s.id} className={i % 2 === 0 ? "bg-purple-50/40" : ""}>
                     <td className="py-2.5 pr-3 font-medium pl-2 rounded-l-lg">
-                      {s.status === "OPEN" ? (
-                        <a
-                          href={`/manager/session?id=${s.id}`}
-                          className="text-purple-700 hover:underline"
-                        >
-                          {s.courtName}
-                        </a>
-                      ) : (
-                        s.courtName
-                      )}
+                      <a
+                        href={`/manager/session?id=${s.id}`}
+                        className="text-purple-700 hover:underline"
+                      >
+                        {s.courtName}
+                      </a>
                     </td>
                     <td className="py-2.5 pr-3 text-gray-600">
                       {new Date(s.date).toLocaleDateString("th-TH", {

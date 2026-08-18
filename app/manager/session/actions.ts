@@ -471,8 +471,8 @@ export async function closeSession(sessionId: string) {
   // close-session flow — the session is already closed at this point.
   try {
     await sendSessionSummaryEmail(sessionId);
-  } catch {
-    // ignore — email is optional
+  } catch (err) {
+    console.error("[closeSession] email step failed:", err);
   }
 
   revalidatePath("/manager/session");
