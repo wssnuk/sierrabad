@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { sendLineSummary } from "@/lib/line";
-import { sendTelegramMessage } from "@/lib/telegram";
+import { sendSessionSummaryTelegram } from "@/lib/telegram";
 import { sendSessionSummaryEmail } from "@/lib/email";
 import { revalidatePath } from "next/cache";
 
@@ -447,12 +447,10 @@ async function buildLineSummary(sessionId: string) {
 
 export async function sendLineNow(sessionId: string) {
   const message = await buildLineSummary(sessionId);
-  if (message) {
-    await Promise.all([
-      sendLineSummary(message),
-      sendTelegramMessage(message),
-    ]);
-  }
+  await Promise.all([
+    message ? sendLineSummary(message) : Promise.resolve(),
+    sendSessionSummaryTelegram(sessionId),
+  ]);
 }
 
 export async function closeSession(sessionId: string) {
