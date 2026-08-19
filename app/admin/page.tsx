@@ -51,6 +51,42 @@ export default async function AdminDashboard() {
       }),
     ]);
 
+
+  const [topFrequentRaw, leastRecentRaw] = await Promise.all([
+    prisma.checkIn.groupBy({
+      by: ["memberId"],
+      _count: { memberId: true },
+      orderBy: { _count: { memberId: "desc" } },
+      take: 5,
+    }),
+    prisma.checkIn.groupBy({
+      by: ["memberId"],
+      _max: { checkedInAt: true },
+      orderBy: { _max: { checkedInAt: "asc" } },
+      take: 5,
+    }),
+  ]);
+
+  const statMemberIds = Array.from(
+    new Set([
+      ...topFrequentRaw.map((r) => r.memberId),
+      ...leastRecentRaw.map((r) => r.memberId),
+    ])
+  );
+  const statMembers = await prisma.member.findMany({
+    where: { id: { in: statMemberIds } },
+  });
+  const memberNameById = new Map(statMembers.map((m) => [m.id, m.name]));
+
+  const topFrequent = topFrequentRaw.map((r) => ({
+    name: memberNameById.get(r.memberId) ?? "?",
+    count: r._count.memberId,
+  }));
+  const leastRecent = leastRecentRaw.map((r) => ({
+    name: memberNameById.get(r.memberId) ?? "?",
+    lastSeen: r._max.checkedInAt,
+  }));
+
   return (
     <>
       <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -158,6 +194,72 @@ export default async function AdminDashboard() {
               </svg>
             }
           />
+        </div>
+
+        {/* Member activity insights */}
+        <div className="grid sm:grid-cols-2 gap-4 mb-6">
+          <div className="bg-white rounded-2xl shadow-md p-6 border-l-4 border-amber-300">
+            <h2 className="flex items-center gap-2 font-bold text-[#3B0764] mb-4 text-lg">
+              <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5" stroke="#D97706" strokeWidth="1.8">
+                <path d="M12 2l2.6 6.6L21 9l-5 4.4L17.5 21 12 17.3 6.5 21 8 13.4 3 9l6.4-.4L12 2Z" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              สมาชิกมาบ่อยสุด
+            </h2>
+            {topFrequent.length === 0 ? (
+              <p className="text-sm text-gray-400">ยังไม่มีข้อมูล</p>
+            ) : (
+              <ol className="space-y-2.5">
+                {topFrequent.map((m, i) => (
+                  <li key={i} className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2.5">
+                      <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-xs font-bold flex items-center justify-center flex-shrink-0">
+                        {i + 1}
+                      </span>
+                      <span className="font-medium text-gray-700">{m.name}</span>
+                    </span>
+                    <span className="text-xs font-semibold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full">
+                      {m.count} ครั้ง
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-md p-6 border-l-4 border-rose-300">
+            <h2 className="flex items-center gap-2 font-bold text-[#3B0764] mb-4 text-lg">
+              <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5" stroke="#E11D48" strokeWidth="1.8">
+                <circle cx="12" cy="12" r="8.5" />
+                <path d="M12 8v4.5l3 2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              หายไปนานสุด
+            </h2>
+            {leastRecent.length === 0 ? (
+              <p className="text-sm text-gray-400">ยังไม่มีข้อมูล</p>
+            ) : (
+              <ol className="space-y-2.5">
+                {leastRecent.map((m, i) => (
+                  <li key={i} className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2.5">
+                      <span className="w-6 h-6 rounded-full bg-rose-100 text-rose-700 text-xs font-bold flex items-center justify-center flex-shrink-0">
+                        {i + 1}
+                      </span>
+                      <span className="font-medium text-gray-700">{m.name}</span>
+                    </span>
+                    <span className="text-xs font-semibold text-rose-700 bg-rose-50 px-2.5 py-1 rounded-full">
+                      {m.lastSeen
+                        ? new Date(m.lastSeen).toLocaleDateString("th-TH", {
+                            day: "numeric",
+                            month: "short",
+                            timeZone: "Asia/Bangkok",
+                          })
+                        : "-"}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </div>
         </div>
 
         {/* Recent sessions overview table */}
