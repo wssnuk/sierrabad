@@ -12,6 +12,7 @@ export default function LineSettingsForm({
 }) {
   const [token, setToken] = useState(initialToken);
   const [groupId, setGroupId] = useState(initialGroupId);
+  const [showToken, setShowToken] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -33,12 +34,26 @@ export default function LineSettingsForm({
         <label className="block text-xs font-bold text-lime-700 mb-1.5">
           Channel Access Token
         </label>
-        <input
-          value={token}
-          onChange={(e) => setToken(e.target.value)}
-          placeholder="วาง Channel access token ที่นี่"
-          className="w-full px-4 py-2.5 rounded-xl border border-lime-100 bg-lime-50/60 text-sm font-mono"
-        />
+        <div className="relative">
+          <input
+            type={showToken ? "text" : "password"}
+            value={token}
+            onChange={(e) => setToken(e.target.value)}
+            placeholder="วาง Channel access token ที่นี่"
+            className="w-full px-4 py-2.5 pr-16 rounded-xl border border-lime-100 bg-lime-50/60 text-sm font-mono"
+            autoComplete="off"
+          />
+          <button
+            type="button"
+            onClick={() => setShowToken((v) => !v)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-lime-700 hover:text-lime-900"
+          >
+            {showToken ? "ซ่อน" : "แสดง"}
+          </button>
+        </div>
+        <p className="text-[11px] text-gray-400 mt-1">
+          ค่านี้จะถูกซ่อนไว้เป็นค่าเริ่มต้น เพื่อไม่ให้หลุดเวลาแคปหน้าจอ
+        </p>
       </div>
 
       <div>
