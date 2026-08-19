@@ -78,8 +78,8 @@ export default async function SessionPage({
           style={{ fontFamily: fontStack }}
         >
         <div className="bg-white rounded-[28px] shadow-2xl p-10 max-w-md w-full">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-600 to-fuchsia-500 flex items-center justify-center mb-6 shadow-lg shadow-purple-200">
-            <ShuttleIcon className="w-8 h-8 text-white" />
+          <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-purple-600 to-fuchsia-500 flex items-center justify-center mb-6 shadow-lg shadow-purple-200 p-4">
+            <img src="/logo-white.png" alt="SierraBad" className="w-full h-full object-contain" />
           </div>
           <h1 className="text-2xl font-bold text-[#3B0764] mb-1">
             เปิดก๊วนวันนี้
