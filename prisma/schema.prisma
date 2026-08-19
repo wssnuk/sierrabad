@@ -31,9 +31,9 @@ model Session {
   status             String    @default("OPEN")
   actualCourtFeePaid Int?
   actualShuttleCount Int?
-  createdBy          String?
-  lastEditedBy       String?
   lastEditedAt       DateTime?
+  lastEditedBy       String?
+  createdBy          String?
   checkIns           CheckIn[]
   games              Game[]
 }
@@ -44,10 +44,11 @@ model CheckIn {
   memberId         String
   checkedInAt      DateTime @default(now())
   courtFeeOverride Int?
-  session          Session  @relation(fields: [sessionId], references: [id])
   member           Member   @relation(fields: [memberId], references: [id])
+  session          Session  @relation(fields: [sessionId], references: [id])
 
   @@unique([sessionId, memberId])
+  @@index([memberId])
 }
 
 model Game {
@@ -55,10 +56,12 @@ model Game {
   sessionId     String
   courtName     String
   shuttleCount  Int          @default(1)
-  shuttleNumber String?
   createdAt     DateTime     @default(now())
+  shuttleNumber String?
   session       Session      @relation(fields: [sessionId], references: [id])
   players       GamePlayer[]
+
+  @@index([sessionId])
 }
 
 model GamePlayer {
@@ -68,12 +71,17 @@ model GamePlayer {
   team     Int    @default(0)
   game     Game   @relation(fields: [gameId], references: [id])
   member   Member @relation(fields: [memberId], references: [id])
+
+  @@index([gameId])
+  @@index([memberId])
 }
 
 model Settings {
-  id                String  @id @default("singleton")
-  telegramBotToken  String?
-  telegramChatId    String?
-  resendApiKey      String?
-  notificationEmail String?
+  id                     String  @id @default("singleton")
+  telegramBotToken       String?
+  telegramChatId         String?
+  notificationEmail      String?
+  resendApiKey           String?
+  lineChannelAccessToken String?
+  lineGroupId            String?
 }
