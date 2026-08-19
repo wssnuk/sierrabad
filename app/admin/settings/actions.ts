@@ -1,4 +1,4 @@
-﻿"use server";
+"use server";
 
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
@@ -18,20 +18,20 @@ export async function changeMyPassword(
   const newPassword = formData.get("newPassword") as string;
 
   if (!username || !oldPassword || !newPassword) {
-    return { error: "เธเธฃเธธเธ“เธฒเธเธฃเธญเธเธเนเธญเธกเธนเธฅเนเธซเนเธเธฃเธเธ—เธธเธเธเนเธญเธ" };
+    return { error: "กรุณากรอกข้อมูลให้ครบทุกช่อง" };
   }
   if (newPassword.length < 4) {
-    return { error: "เธฃเธซเธฑเธชเธเนเธฒเธเนเธซเธกเนเธ•เนเธญเธเธกเธตเธเธงเธฒเธกเธขเธฒเธงเธญเธขเนเธฒเธเธเนเธญเธข 4 เธ•เธฑเธงเธญเธฑเธเธฉเธฃ" };
+    return { error: "รหัสผ่านใหม่ต้องมีความยาวอย่างน้อย 4 ตัวอักษร" };
   }
 
   const user = await prisma.user.findUnique({ where: { username } });
   if (!user) {
-    return { error: "เนเธกเนเธเธเธเธนเนเนเธเนเนเธเธฃเธฐเธเธ" };
+    return { error: "ไม่พบผู้ใช้ในระบบ" };
   }
 
   const valid = await bcrypt.compare(oldPassword, user.password);
   if (!valid) {
-    return { error: "เธฃเธซเธฑเธชเธเนเธฒเธเน€เธ”เธดเธกเนเธกเนเธ–เธนเธเธ•เนเธญเธ" };
+    return { error: "รหัสผ่านเดิมไม่ถูกต้อง" };
   }
 
   const hashed = await bcrypt.hash(newPassword, 10);
@@ -62,7 +62,7 @@ export async function updateTelegramSettings(formData: FormData) {
 
 export async function testTelegramMessage() {
   await sendTelegramMessage(
-    "๐ธ เธ—เธ”เธชเธญเธเธเธฒเธฃเน€เธเธทเนเธญเธกเธ•เนเธญ Telegram เธเธฒเธเธฃเธฐเธเธ SierraBad เธชเธณเน€เธฃเนเธเนเธฅเนเธง!"
+    "ทดสอบการเชื่อมต่อ Telegram จากระบบ SierraBad สำเร็จแล้ว!"
   );
 }
 
@@ -73,17 +73,17 @@ export async function fetchLatestChatId(
 ): Promise<FetchChatIdResult> {
   const trimmed = token?.trim();
   if (!trimmed) {
-    return { error: "เธเธฃเธธเธ“เธฒเธเธฃเธญเธ Bot Token เธเนเธญเธ" };
+    return { error: "กรุณากรอก Bot Token ก่อน" };
   }
 
   try {
     const res = await fetch(
-      `https://api.telegram.org/bot${trimmed}/getUpdates`
+      "https://api.telegram.org/bot" + trimmed + "/getUpdates"
     );
     const data = await res.json();
 
     if (!data.ok) {
-      return { error: "Token เนเธกเนเธ–เธนเธเธ•เนเธญเธ เธเธฃเธธเธ“เธฒเธ•เธฃเธงเธเธชเธญเธเธญเธตเธเธเธฃเธฑเนเธ" };
+      return { error: "Token ไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง" };
     }
 
     const updates = data.result as Array<{
@@ -94,7 +94,7 @@ export async function fetchLatestChatId(
     if (!updates || updates.length === 0) {
       return {
         error:
-          "เธขเธฑเธเนเธกเนเธเธเธเนเธญเธเธงเธฒเธก เธเธฃเธธเธ“เธฒเธชเนเธเธเนเธญเธเธงเธฒเธกเธซเธฒเธเธญเธ—เธซเธฃเธทเธญเธเธฅเธธเนเธกเธ—เธตเนเธ•เนเธญเธเธเธฒเธฃเธเนเธญเธ 1 เธเธฃเธฑเนเธ เนเธฅเนเธงเธเธ”เธเธธเนเธกเธเธตเนเธญเธตเธเธ—เธต",
+          "ยังไม่พบข้อความ กรุณาส่งข้อความหาบอทหรือกลุ่มที่ต้องการก่อน 1 ครั้ง แล้วกดปุ่มนี้อีกที",
       };
     }
 
@@ -103,13 +103,13 @@ export async function fetchLatestChatId(
 
     if (!chatId) {
       return {
-        error: "เนเธกเนเธเธ Chat ID เธเธฃเธธเธ“เธฒเธฅเธญเธเธชเนเธเธเนเธญเธเธงเธฒเธกเนเธซเธกเนเนเธฅเนเธงเธเธ”เธเธธเนเธกเธเธตเนเธญเธตเธเธเธฃเธฑเนเธ",
+        error: "ไม่พบ Chat ID กรุณาลองส่งข้อความใหม่แล้วกดปุ่มนี้อีกครั้ง",
       };
     }
 
     return { chatId: String(chatId) };
   } catch {
-    return { error: "เน€เธเธทเนเธญเธกเธ•เนเธญ Telegram เนเธกเนเธชเธณเน€เธฃเนเธ เธเธฃเธธเธ“เธฒเธฅเธญเธเนเธซเธกเนเธญเธตเธเธเธฃเธฑเนเธ" };
+    return { error: "เชื่อมต่อ Telegram ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง" };
   }
 }
 
@@ -129,7 +129,7 @@ export async function updateLineSettings(formData: FormData) {
 
 export async function testLineMessage() {
   await sendLineSummary(
-    "๐ธ เธ—เธ”เธชเธญเธเธเธฒเธฃเน€เธเธทเนเธญเธกเธ•เนเธญ LINE เธเธฒเธเธฃเธฐเธเธ SierraBad เธชเธณเน€เธฃเนเธเนเธฅเนเธง!"
+    "ทดสอบการเชื่อมต่อ LINE จากระบบ SierraBad สำเร็จแล้ว!"
   );
 }
 

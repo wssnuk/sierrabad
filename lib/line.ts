@@ -1,4 +1,4 @@
-﻿import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 
 export async function getLineSettings() {
   return prisma.settings.findUnique({ where: { id: "singleton" } });
@@ -10,7 +10,7 @@ export async function sendLineSummary(text: string) {
   const groupId = settings?.lineGroupId;
 
   if (!token || !groupId) {
-    console.warn("lineChannelAccessToken เธซเธฃเธทเธญ lineGroupId เธขเธฑเธเนเธกเนเนเธ”เนเธ•เธฑเนเธเธเนเธฒ เธเนเธฒเธกเธเธฒเธฃเนเธเนเธเน€เธ•เธทเธญเธ");
+    console.warn("lineChannelAccessToken หรือ lineGroupId ยังไม่ได้ตั้งค่า ข้ามการแจ้งเตือน");
     return;
   }
 

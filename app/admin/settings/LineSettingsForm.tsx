@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { updateLineSettings } from "./actions";
@@ -36,7 +36,7 @@ export default function LineSettingsForm({
         <input
           value={token}
           onChange={(e) => setToken(e.target.value)}
-          placeholder="เธงเธฒเธ Channel access token เธ—เธตเนเธเธตเน"
+          placeholder="วาง Channel access token ที่นี่"
           className="w-full px-4 py-2.5 rounded-xl border border-lime-100 bg-lime-50/60 text-sm font-mono"
         />
       </div>
@@ -55,7 +55,7 @@ export default function LineSettingsForm({
 
       {saved && (
         <p className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-2">
-          เธเธฑเธเธ—เธถเธเธเธฒเธฃเธ•เธฑเนเธเธเนเธฒเธชเธณเน€เธฃเนเธเนเธฅเนเธง
+          บันทึกการตั้งค่าสำเร็จแล้ว
         </p>
       )}
 
@@ -64,7 +64,7 @@ export default function LineSettingsForm({
         disabled={isSaving}
         className="w-full py-3 rounded-xl bg-gradient-to-r from-lime-600 to-lime-500 text-white font-bold text-sm shadow hover:shadow-md transition-shadow disabled:opacity-60"
       >
-        {isSaving ? "เธเธณเธฅเธฑเธเธเธฑเธเธ—เธถเธ..." : "เธเธฑเธเธ—เธถเธเธเธฒเธฃเธ•เธฑเนเธเธเนเธฒ LINE"}
+        {isSaving ? "กำลังบันทึก..." : "บันทึกการตั้งค่า LINE"}
       </button>
     </form>
   );
